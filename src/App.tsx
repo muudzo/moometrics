@@ -7,8 +7,8 @@ import { CropManagement } from './components/CropManagement';
 import { LivestockManagement } from './components/LivestockManagement';
 import { EquipmentTracking } from './components/EquipmentTracking';
 import { FinanceTracking } from './components/FinanceTracking';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { Login } from './components/Login';
+import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
+import { Login } from './features/auth/components/Login';
 
 function AppContent() {
   const [activeComponent, setActiveComponent] = useState("dashboard");

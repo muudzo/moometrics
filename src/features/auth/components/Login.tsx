@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Label } from './ui/label';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Tractor } from 'lucide-react';
 
 export const Login: React.FC = () => {
@@ -43,7 +43,7 @@ export const Login: React.FC = () => {
                                 id="username"
                                 placeholder="farmer_john"
                                 value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                                 required
                             />
                         </div>
