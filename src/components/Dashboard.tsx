@@ -4,12 +4,12 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { 
-  Wheat, 
-  PawPrint, 
-  Tractor, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  Wheat,
+  PawPrint,
+  Tractor,
+  DollarSign,
+  TrendingUp,
   Sun,
   CloudRain,
   Thermometer,
@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Sparkles
 } from "lucide-react";
+import { WeatherCard } from './WeatherCard';
 
 // Sample data for when user has added items
 const sampleCropData = [
@@ -47,16 +48,16 @@ interface DashboardProps {
 
 export function Dashboard({ farmData, onNavigate }: DashboardProps) {
   const [showWelcome, setShowWelcome] = useState(!farmData || (
-    farmData.crops.length === 0 && 
-    farmData.livestock.length === 0 && 
-    farmData.equipment.length === 0 && 
+    farmData.crops.length === 0 &&
+    farmData.livestock.length === 0 &&
+    farmData.equipment.length === 0 &&
     farmData.transactions.length === 0
   ));
 
   const hasData = farmData && (
-    farmData.crops.length > 0 || 
-    farmData.livestock.length > 0 || 
-    farmData.equipment.length > 0 || 
+    farmData.crops.length > 0 ||
+    farmData.livestock.length > 0 ||
+    farmData.equipment.length > 0 ||
     farmData.transactions.length > 0
   );
 
@@ -80,34 +81,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
         </div>
 
         {/* Weather Card - Always show as it's external data */}
-        <Card className="bg-gradient-to-r from-secondary to-accent border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-card-foreground">
-              <Sun className="w-5 h-5 text-yellow-500" />
-              Today's Weather
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2">
-                <Thermometer className="w-4 h-4 text-red-500" />
-                <span className="text-2xl font-semibold text-card-foreground">24°C</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CloudRain className="w-4 h-4 text-blue-500" />
-                <span className="text-card-foreground">20% chance</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Wind className="w-4 h-4 text-muted-foreground" />
-                <span className="text-card-foreground">12 km/h</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sun className="w-4 h-4 text-yellow-500" />
-                <span className="text-card-foreground">UV Index: 6</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <WeatherCard />
 
         {/* Empty State KPI Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -167,8 +141,8 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <Button 
-                className="w-full justify-start h-auto p-4" 
+              <Button
+                className="w-full justify-start h-auto p-4"
                 variant="outline"
                 onClick={() => onNavigate?.('crops')}
               >
@@ -186,8 +160,8 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                 </div>
               </Button>
 
-              <Button 
-                className="w-full justify-start h-auto p-4" 
+              <Button
+                className="w-full justify-start h-auto p-4"
                 variant="outline"
                 onClick={() => onNavigate?.('livestock')}
               >
@@ -205,8 +179,8 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                 </div>
               </Button>
 
-              <Button 
-                className="w-full justify-start h-auto p-4" 
+              <Button
+                className="w-full justify-start h-auto p-4"
                 variant="outline"
                 onClick={() => onNavigate?.('equipment')}
               >
@@ -224,8 +198,8 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                 </div>
               </Button>
 
-              <Button 
-                className="w-full justify-start h-auto p-4" 
+              <Button
+                className="w-full justify-start h-auto p-4"
                 variant="outline"
                 onClick={() => onNavigate?.('finance')}
               >
@@ -285,14 +259,14 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
   // Show dashboard with data if available
   const cropData = farmData?.crops || [];
   const revenueData = sampleRevenueData;
-  
+
   // Convert livestock data to chart format
-  const livestockData = (farmData?.livestock && farmData.livestock.length > 0) 
-    ? farmData.livestock.map(group => ({ 
-        name: group.type, 
-        value: group.count || 0, 
-        color: '#4a5c2a' 
-      }))
+  const livestockData = (farmData?.livestock && farmData.livestock.length > 0)
+    ? farmData.livestock.map(group => ({
+      name: group.type,
+      value: group.count || 0,
+      color: '#4a5c2a'
+    }))
     : sampleLivestockData;
 
   return (
@@ -314,34 +288,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
       </div>
 
       {/* Weather Card */}
-      <Card className="bg-gradient-to-r from-secondary to-accent border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-card-foreground">
-            <Sun className="w-5 h-5 text-yellow-500" />
-            Today's Weather
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <Thermometer className="w-4 h-4 text-red-500" />
-              <span className="text-2xl font-semibold text-card-foreground">24°C</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CloudRain className="w-4 h-4 text-blue-500" />
-              <span className="text-card-foreground">20% chance</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Wind className="w-4 h-4 text-muted-foreground" />
-              <span className="text-card-foreground">12 km/h</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sun className="w-4 h-4 text-yellow-500" />
-              <span className="text-card-foreground">UV Index: 6</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <WeatherCard />
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -430,8 +377,8 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip 
-                    formatter={(value) => [`$${value.toLocaleString()}`, '']} 
+                  <Tooltip
+                    formatter={(value) => [`$${value.toLocaleString()}`, '']}
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
@@ -468,7 +415,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
@@ -490,32 +437,32 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
           <CardDescription>Common farm management tasks</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button 
-            className="w-full justify-start" 
+          <Button
+            className="w-full justify-start"
             variant="outline"
             onClick={() => onNavigate?.('crops')}
           >
             <Wheat className="w-4 h-4 mr-2" />
             {cropData.length === 0 ? 'Add Your First Crop Field' : 'Add New Crop Planting'}
           </Button>
-          <Button 
-            className="w-full justify-start" 
+          <Button
+            className="w-full justify-start"
             variant="outline"
             onClick={() => onNavigate?.('livestock')}
           >
             <PawPrint className="w-4 h-4 mr-2" />
             {livestockData.length === 0 ? 'Register Your First Animals' : 'Record Livestock Health Check'}
           </Button>
-          <Button 
-            className="w-full justify-start" 
+          <Button
+            className="w-full justify-start"
             variant="outline"
             onClick={() => onNavigate?.('equipment')}
           >
             <Tractor className="w-4 h-4 mr-2" />
             {farmData?.equipment?.length === 0 ? 'Add Farm Equipment' : 'Schedule Equipment Maintenance'}
           </Button>
-          <Button 
-            className="w-full justify-start" 
+          <Button
+            className="w-full justify-start"
             variant="outline"
             onClick={() => onNavigate?.('finance')}
           >
