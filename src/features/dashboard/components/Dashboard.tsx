@@ -25,13 +25,15 @@ const sampleLivestockData = [
   { name: 'Cattle', value: 25, color: '#4a5c2a' },
   { name: 'Chickens', value: 50, color: '#8ba155' }
 ];
+interface FarmData {
+  crops: Array<{ type: string; planted?: number; harvested?: number; yield?: number }>;
+  livestock: Array<{ type: string; count?: number }>;
+  equipment: Array<{ name: string; status?: string }>;
+  transactions: Array<{ amount: number; type: string; date?: string }>;
+}
+
 interface DashboardProps {
-  farmData?: {
-    crops: any[];
-    livestock: any[];
-    equipment: any[];
-    transactions: any[];
-  };
+  farmData?: FarmData;
   onNavigate?: (section: string) => void;
 }
 
@@ -308,7 +310,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">
-              {livestockData.reduce((sum, item) => sum + (item.value || 0), 0)}
+              {livestockData.reduce((sum: number, item: { value?: number }) => sum + (item.value || 0), 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               {livestockData.length > 0 ? (
@@ -367,7 +369,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                   <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
                   <Tooltip
-                    formatter={(value) => [`$${value.toLocaleString()}`, '']}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
@@ -395,12 +397,12 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
+                    label={({ name, value }: { name: string; value: number }) => `${name}: ${value}`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {livestockData.map((entry, index) => (
+                    {livestockData.map((entry: { color: string }, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
