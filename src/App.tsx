@@ -7,11 +7,14 @@ import { CropManagement } from './components/CropManagement';
 import { LivestockManagement } from './components/LivestockManagement';
 import { EquipmentTracking } from './components/EquipmentTracking';
 import { FinanceTracking } from './components/FinanceTracking';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Login } from './components/Login';
 
-export default function App() {
+function AppContent() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
   const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   // Farm data state for first-time user experience
   const [farmData, setFarmData] = useState({
@@ -20,6 +23,10 @@ export default function App() {
     equipment: [],
     transactions: []
   });
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
 
   const handleNavigate = (section: string) => {
     setActiveComponent(section);
@@ -51,9 +58,9 @@ export default function App() {
     <div className={`min-h-screen bg-background ${darkMode ? 'dark' : ''}`}>
       <SidebarProvider>
         <div className="flex h-screen">
-          <AppSidebar 
-            activeComponent={activeComponent} 
-            setActiveComponent={setActiveComponent} 
+          <AppSidebar
+            activeComponent={activeComponent}
+            setActiveComponent={setActiveComponent}
           />
 
           <div className="flex-1 flex flex-col">
@@ -71,5 +78,13 @@ export default function App() {
         </div>
       </SidebarProvider>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
