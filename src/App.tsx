@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SidebarProvider } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Header } from './components/Header';
-import { Dashboard } from './components/Dashboard';
+import { Dashboard } from './features/dashboard/components/Dashboard';
 import { CropManagement } from './components/CropManagement';
 import { LivestockManagement } from './components/LivestockManagement';
 import { EquipmentTracking } from './components/EquipmentTracking';
