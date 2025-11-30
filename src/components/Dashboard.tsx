@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Progress } from "./ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
   Wheat,
@@ -10,22 +9,13 @@ import {
   Tractor,
   DollarSign,
   TrendingUp,
-  Sun,
-  CloudRain,
-  Thermometer,
-  Wind,
   CheckCircle,
-  Plus,
   ArrowRight,
   Sparkles
 } from "lucide-react";
-import { WeatherCard } from './WeatherCard';
+import { WeatherCard } from '@/features/weather/components/WeatherCard';
 
-// Sample data for when user has added items
-const sampleCropData = [
-  { name: 'Corn', planted: 45, harvested: 0, yield: 15 },
-  { name: 'Wheat', planted: 32, harvested: 0, yield: 8 }
-];
+
 
 const sampleRevenueData = [
   { month: 'This Month', revenue: 0, expenses: 1200 }
@@ -35,7 +25,6 @@ const sampleLivestockData = [
   { name: 'Cattle', value: 25, color: '#4a5c2a' },
   { name: 'Chickens', value: 50, color: '#8ba155' }
 ];
-
 interface DashboardProps {
   farmData?: {
     crops: any[];
@@ -47,7 +36,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ farmData, onNavigate }: DashboardProps) {
-  const [showWelcome, setShowWelcome] = useState(!farmData || (
+  const [showWelcome] = useState(!farmData || (
     farmData.crops.length === 0 &&
     farmData.livestock.length === 0 &&
     farmData.equipment.length === 0 &&
