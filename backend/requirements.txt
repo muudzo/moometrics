@@ -15,6 +15,3 @@ openai==1.10.0
 # Data validation
 pydantic==2.5.3
 pydantic-settings==2.1.0
-
-# CORS
-python-cors==1.0.0
