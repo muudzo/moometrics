@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CloudSun, Droplets, Wind } from 'lucide-react';
+import { CloudSun, Droplets, Wind, MapPin } from 'lucide-react';
 import { fetchWeather, WeatherData } from '../services/weatherService';
+import { useLocation } from '@/context/LocationContext';
 
 export const WeatherCard: React.FC = () => {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [loading, setLoading] = useState(true);
+    const { location } = useLocation();
 
     useEffect(() => {
         const loadWeather = async () => {
+            if (!location) {
+                setLoading(false);
+                return;
+            }
+
             try {
-                // Default coordinates (can be made dynamic later)
-                const data = await fetchWeather(40.7128, -74.0060);
+                setLoading(true);
+                const data = await fetchWeather(location.latitude, location.longitude);
                 setWeather(data);
             } catch (error) {
                 console.error('Failed to load weather', error);
@@ -21,7 +28,7 @@ export const WeatherCard: React.FC = () => {
         };
 
         loadWeather();
-    }, []);
+    }, [location]);
 
     if (loading) {
         return (
