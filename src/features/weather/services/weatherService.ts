@@ -1,5 +1,4 @@
-const API_KEY = import.meta.env.VITE_WEATHER_API_KEY || 'YOUR_API_KEY';
-const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 export interface WeatherData {
     temp: number;
@@ -11,43 +10,32 @@ export interface WeatherData {
 }
 
 export const fetchWeather = async (lat: number, lon: number): Promise<WeatherData> => {
-    // Mock data if no API key is provided or for testing
-    if (API_KEY === 'YOUR_API_KEY') {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    temp: 22,
-                    condition: 'Sunny',
-                    location: 'Farm Location',
-                    humidity: 45,
-                    windSpeed: 12,
-                    icon: '01d'
-                });
-            }, 500);
-        });
-    }
-
     try {
-        const response = await fetch(`${BASE_URL}/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`);
+        // Call our Python backend API
+        const response = await fetch(`${BACKEND_URL}/api/weather?lat=${lat}&lon=${lon}`);
+
         if (!response.ok) {
-            throw new Error('Weather data fetch failed');
+            throw new Error(`Backend API error: ${response.status}`);
         }
+
         const data = await response.json();
+
         return {
-            temp: Math.round(data.main.temp),
-            condition: data.weather[0].main,
-            location: data.name,
-            humidity: data.main.humidity,
-            windSpeed: data.wind.speed,
-            icon: data.weather[0].icon
+            temp: Math.round(data.temperature),
+            condition: data.condition,
+            location: data.location,
+            humidity: data.humidity,
+            windSpeed: data.wind_speed,
+            icon: data.icon
         };
     } catch (error) {
-        console.error('Error fetching weather:', error);
+        console.error('Error fetching weather from backend:', error);
+
         // Fallback to mock data on error
         return {
             temp: 22,
             condition: 'Sunny',
-            location: 'Farm Location',
+            location: 'Farm Location (Offline)',
             humidity: 45,
             windSpeed: 12,
             icon: '01d'
