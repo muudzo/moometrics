@@ -8,6 +8,7 @@ import { LivestockManagement } from './components/LivestockManagement';
 import { EquipmentTracking } from './components/EquipmentTracking';
 import { FinanceTracking } from './components/FinanceTracking';
 import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
+import { LocationProvider } from './context/LocationContext';
 import { Login } from './features/auth/components/Login';
 
 function AppContent() {
@@ -84,7 +85,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <LocationProvider>
+        <AppContent />
+      </LocationProvider>
     </AuthProvider>
   );
 }

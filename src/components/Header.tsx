@@ -2,8 +2,9 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { SidebarTrigger } from './ui/sidebar';
 import { MooMetricsLogo } from './MooMetricsLogo';
+import { LocationSettings } from './LocationSettings';
 import { notifications } from '../constants/app-constants';
-import { 
+import {
   Bell,
   Settings,
   User,
@@ -37,6 +38,9 @@ export function Header({ showNotifications, setShowNotifications, darkMode, togg
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Location Settings */}
+          <LocationSettings />
+
           {/* Dark Mode Toggle */}
           <Button variant="ghost" size="sm" onClick={toggleDarkMode}>
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -44,8 +48,8 @@ export function Header({ showNotifications, setShowNotifications, darkMode, togg
 
           {/* Notifications */}
           <div className="relative">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative"
@@ -67,11 +71,10 @@ export function Header({ showNotifications, setShowNotifications, darkMode, togg
                   {notifications.map((notification) => (
                     <div key={notification.id} className="p-3 border-b border-border last:border-b-0">
                       <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-2 ${
-                          notification.type === 'critical' ? 'bg-red-500' :
+                        <div className={`w-2 h-2 rounded-full mt-2 ${notification.type === 'critical' ? 'bg-red-500' :
                           notification.type === 'warning' ? 'bg-yellow-500' :
-                          'bg-blue-500'
-                        }`}></div>
+                            'bg-blue-500'
+                          }`}></div>
                         <div className="flex-1">
                           <p className="text-sm">{notification.message}</p>
                           <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
