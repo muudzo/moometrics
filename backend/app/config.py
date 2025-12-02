@@ -2,7 +2,6 @@
 Configuration management for the backend API.
 """
 from pydantic_settings import BaseSettings
-from functools import lru_cache
 
 
 class Settings(BaseSettings):
@@ -24,7 +23,6 @@ class Settings(BaseSettings):
         case_sensitive = False
 
 
-@lru_cache()
 def get_settings() -> Settings:
-    """Get cached settings instance."""
+    """Get settings instance (reloads from .env each time)."""
     return Settings()

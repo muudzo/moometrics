@@ -17,14 +17,6 @@ function AppContent() {
   const [darkMode, setDarkMode] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Farm data state for first-time user experience
-  const [farmData, setFarmData] = useState({
-    crops: [],
-    livestock: [],
-    equipment: [],
-    transactions: []
-  });
-
   if (!isAuthenticated) {
     return <Login />;
   }
@@ -36,17 +28,17 @@ function AppContent() {
   const renderComponent = () => {
     switch (activeComponent) {
       case "dashboard":
-        return <Dashboard farmData={farmData} onNavigate={handleNavigate} />;
+        return <Dashboard onNavigate={setActiveComponent} />;
       case "crops":
-        return <CropManagement farmData={farmData} setFarmData={setFarmData} />;
+        return <CropManagement />;
       case "livestock":
-        return <LivestockManagement farmData={farmData} setFarmData={setFarmData} />;
+        return <LivestockManagement />;
       case "equipment":
-        return <EquipmentTracking farmData={farmData} setFarmData={setFarmData} />;
+        return <EquipmentTracking />;
       case "finance":
-        return <FinanceTracking farmData={farmData} setFarmData={setFarmData} />;
+        return <FinanceTracking />;
       default:
-        return <Dashboard farmData={farmData} onNavigate={handleNavigate} />;
+        return <Dashboard onNavigate={setActiveComponent} />;
     }
   };
 

@@ -9,8 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { 
-  DollarSign, 
+import {
+  DollarSign,
   TrendingUp,
   TrendingDown,
   ShoppingCart,
@@ -37,16 +37,6 @@ interface Transaction {
   vendor?: string;
 }
 
-interface FinanceTrackingProps {
-  farmData: {
-    crops: any[];
-    livestock: any[];
-    equipment: any[];
-    transactions: Transaction[];
-  };
-  setFarmData: (data: any) => void;
-}
-
 const getStatusColor = (status: string) => {
   switch (status) {
     case "Paid":
@@ -60,8 +50,9 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps) {
+export function FinanceTracking() {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [newTransaction, setNewTransaction] = useState({
     type: 'income' as 'income' | 'expense',
     category: '',
@@ -72,7 +63,6 @@ export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps)
     vendor: ''
   });
 
-  const transactions = farmData.transactions;
   const hasTransactions = transactions.length > 0;
 
   const addNewTransaction = () => {
@@ -89,10 +79,7 @@ export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps)
         vendor: newTransaction.type === 'expense' ? newTransaction.vendor : undefined
       };
 
-      setFarmData({
-        ...farmData,
-        transactions: [...farmData.transactions, transaction]
-      });
+      setTransactions([...transactions, transaction]);
 
       setNewTransaction({
         type: 'income',
@@ -549,8 +536,8 @@ export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps)
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                       <YAxis stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip 
-                        formatter={(value) => [`$${value.toLocaleString()}`, '']} 
+                      <Tooltip
+                        formatter={(value) => [`$${value.toLocaleString()}`, '']}
                         contentStyle={{
                           backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
@@ -588,7 +575,7 @@ export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps)
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value) => [`$${value.toLocaleString()}`, '']}
                           contentStyle={{
                             backgroundColor: 'hsl(var(--card))',
@@ -682,7 +669,7 @@ export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps)
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${transactions.filter(t => t.type === 'income').length > 0 
+                  ${transactions.filter(t => t.type === 'income').length > 0
                     ? Math.round(totalIncome / transactions.filter(t => t.type === 'income').length).toLocaleString()
                     : '0'}
                 </div>
@@ -777,7 +764,7 @@ export function FinanceTracking({ farmData, setFarmData }: FinanceTrackingProps)
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${transactions.filter(t => t.type === 'expense').length > 0 
+                  ${transactions.filter(t => t.type === 'expense').length > 0
                     ? Math.round(totalExpenses / transactions.filter(t => t.type === 'expense').length).toLocaleString()
                     : '0'}
                 </div>

@@ -9,8 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Progress } from "./ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { 
-  Tractor, 
+import {
+  Tractor,
   Wrench,
   Calendar,
   Clock,
@@ -43,16 +43,6 @@ interface Equipment {
   model?: string;
 }
 
-interface EquipmentTrackingProps {
-  farmData: {
-    crops: any[];
-    livestock: any[];
-    equipment: Equipment[];
-    transactions: any[];
-  };
-  setFarmData: (data: any) => void;
-}
-
 const getStatusColor = (status: string) => {
   switch (status) {
     case "Operational":
@@ -68,8 +58,9 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export function EquipmentTracking({ farmData, setFarmData }: EquipmentTrackingProps) {
+export function EquipmentTracking() {
   const [isAddEquipmentOpen, setIsAddEquipmentOpen] = useState(false);
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [newEquipment, setNewEquipment] = useState({
     name: '',
     type: '',
@@ -79,7 +70,6 @@ export function EquipmentTracking({ farmData, setFarmData }: EquipmentTrackingPr
     location: ''
   });
 
-  const equipment = farmData.equipment;
   const hasEquipment = equipment.length > 0;
 
   const addNewEquipment = () => {
@@ -101,10 +91,7 @@ export function EquipmentTracking({ farmData, setFarmData }: EquipmentTrackingPr
         model: newEquipment.model
       };
 
-      setFarmData({
-        ...farmData,
-        equipment: [...farmData.equipment, equipmentItem]
-      });
+      setEquipment([...equipment, equipmentItem]);
 
       setNewEquipment({ name: '', type: '', make: '', model: '', year: '', location: '' });
       setIsAddEquipmentOpen(false);

@@ -9,12 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Progress } from "./ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { 
-  Wheat, 
-  Calendar as CalendarIcon, 
-  MapPin, 
-  Droplets, 
-  Sun, 
+import {
+  Wheat,
+  Calendar as CalendarIcon,
+  MapPin,
+  Droplets,
+  Sun,
   TrendingUp,
   Plus,
   Edit,
@@ -46,16 +46,6 @@ interface Task {
   type: string;
 }
 
-interface CropManagementProps {
-  farmData: {
-    crops: CropField[];
-    livestock: any[];
-    equipment: any[];
-    transactions: any[];
-  };
-  setFarmData: (data: any) => void;
-}
-
 const getStatusColor = (status: string) => {
   switch (status) {
     case "Ready to Harvest":
@@ -84,8 +74,9 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
-export function CropManagement({ farmData, setFarmData }: CropManagementProps) {
+export function CropManagement() {
   const [isAddFieldOpen, setIsAddFieldOpen] = useState(false);
+  const [cropFields, setCropFields] = useState<CropField[]>([]);
   const [newField, setNewField] = useState({
     name: '',
     crop: '',
@@ -93,7 +84,6 @@ export function CropManagement({ farmData, setFarmData }: CropManagementProps) {
     planted: ''
   });
 
-  const cropFields = farmData.crops;
   const hasFields = cropFields.length > 0;
 
   const addNewField = () => {
@@ -112,10 +102,7 @@ export function CropManagement({ farmData, setFarmData }: CropManagementProps) {
         lastWatered: new Date().toISOString().split('T')[0]
       };
 
-      setFarmData({
-        ...farmData,
-        crops: [...farmData.crops, field]
-      });
+      setCropFields([...cropFields, field]);
 
       setNewField({ name: '', crop: '', acres: '', planted: '' });
       setIsAddFieldOpen(false);

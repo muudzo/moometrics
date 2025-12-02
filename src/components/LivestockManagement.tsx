@@ -9,9 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Progress } from "./ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { 
-  PawPrint, 
-  Heart, 
+import {
+  PawPrint,
+  Heart,
   Calendar,
   TrendingUp,
   AlertTriangle,
@@ -42,16 +42,6 @@ interface Animal {
   name?: string;
 }
 
-interface LivestockManagementProps {
-  farmData: {
-    crops: any[];
-    livestock: Animal[];
-    equipment: any[];
-    transactions: any[];
-  };
-  setFarmData: (data: any) => void;
-}
-
 const getHealthColor = (status: string) => {
   switch (status) {
     case "Excellent":
@@ -67,8 +57,9 @@ const getHealthColor = (status: string) => {
   }
 };
 
-export function LivestockManagement({ farmData, setFarmData }: LivestockManagementProps) {
+export function LivestockManagement() {
   const [isAddAnimalOpen, setIsAddAnimalOpen] = useState(false);
+  const [livestock, setLivestock] = useState<Animal[]>([]);
   const [newAnimal, setNewAnimal] = useState({
     type: '',
     count: '',
@@ -77,7 +68,6 @@ export function LivestockManagement({ farmData, setFarmData }: LivestockManageme
     avgAge: ''
   });
 
-  const livestock = farmData.livestock;
   const hasLivestock = livestock.length > 0;
 
   const addNewAnimal = () => {
@@ -96,10 +86,7 @@ export function LivestockManagement({ farmData, setFarmData }: LivestockManageme
         breed: newAnimal.breed
       };
 
-      setFarmData({
-        ...farmData,
-        livestock: [...farmData.livestock, animal]
-      });
+      setLivestock([...livestock, animal]);
 
       setNewAnimal({ type: '', count: '', breed: '', avgWeight: '', avgAge: '' });
       setIsAddAnimalOpen(false);
@@ -301,7 +288,7 @@ export function LivestockManagement({ farmData, setFarmData }: LivestockManageme
 
   const totalAnimals = livestock.reduce((sum, group) => sum + group.count, 0);
   const totalBreeding = livestock.reduce((sum, group) => sum + group.breeding, 0);
-  const avgHealthScore = livestock.length > 0 ? 
+  const avgHealthScore = livestock.length > 0 ?
     livestock.reduce((sum, group) => sum + (group.healthStatus === 'Excellent' ? 100 : group.healthStatus === 'Good' ? 85 : group.healthStatus === 'Fair' ? 70 : 50), 0) / livestock.length : 0;
 
   return (
@@ -634,7 +621,7 @@ export function LivestockManagement({ farmData, setFarmData }: LivestockManageme
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="scheduled-date">Scheduled Date</Label>  
+                  <Label htmlFor="scheduled-date">Scheduled Date</Label>
                   <Input type="date" />
                 </div>
 
