@@ -1,7 +1,7 @@
 """
 Weather API router.
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from app.services.weather_service import get_weather_by_coordinates
 from app.models.schemas import WeatherResponse
 
@@ -21,13 +21,9 @@ async def get_weather(
         lon: Longitude coordinate
         
     Returns:
-        Current weather data including temperature, condition, humidity, and wind speed
+        Current weather data including temperature, condition, humidity, and wind speed.
+        Returns mock data if API is unavailable or API key is invalid.
     """
-    try:
-        weather_data = await get_weather_by_coordinates(lat, lon)
-        return weather_data
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch weather data: {str(e)}"
-        )
+    # Service handles all errors and returns mock data on failure
+    weather_data = await get_weather_by_coordinates(lat, lon)
+    return weather_data
