@@ -3,6 +3,7 @@
 ## The Issue
 
 Both API keys tested are returning 401 Unauthorized from OpenWeatherMap:
+
 - First key: 31 characters (truncated)
 - Second key: `44a84bb8ae9cdfcd5123c5c34918e3bb` (invalid/not activated)
 
@@ -26,7 +27,8 @@ Both API keys tested are returning 401 Unauthorized from OpenWeatherMap:
 
 ### Step 3: Copy the Full Key
 
-**IMPORTANT**: 
+**IMPORTANT**:
+
 - The key will be **exactly 32 characters**
 - It looks like: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`
 - Copy the ENTIRE key (all 32 characters)
@@ -54,11 +56,13 @@ Both API keys tested are returning 401 Unauthorized from OpenWeatherMap:
 ### Step 6: Verify It Works
 
 **Test 1: Check Configuration**
+
 ```bash
 curl http://localhost:8000/config/check
 ```
 
 Should show:
+
 ```json
 {
   "openweather_api_key_configured": true,
@@ -68,6 +72,7 @@ Should show:
 ```
 
 **Test 2: Test Weather API**
+
 ```bash
 curl "http://localhost:8000/api/weather?lat=-17.8252&lon=31.0335"
 ```
@@ -75,6 +80,7 @@ curl "http://localhost:8000/api/weather?lat=-17.8252&lon=31.0335"
 Should return REAL weather data (not "Mock Data")
 
 **Test 3: Check in Browser**
+
 1. Open http://localhost:3000
 2. Set your location
 3. Weather widget should show real data!
@@ -84,6 +90,7 @@ Should return REAL weather data (not "Mock Data")
 If you don't want to wait for API activation or deal with API keys right now:
 
 **The app works perfectly with mock data!**
+
 - Weather will show: 22°C, Sunny, "Mock Data (Invalid API Key)"
 - All other features work normally
 - You can add a real API key later
@@ -120,6 +127,7 @@ If you don't want to wait for API activation or deal with API keys right now:
 ## Free Tier Limits
 
 OpenWeatherMap free tier includes:
+
 - ✅ 60 calls per minute
 - ✅ 1,000,000 calls per month
 - ✅ Current weather data
@@ -131,16 +139,19 @@ This is MORE than enough for development and personal use!
 ## Quick Reference
 
 **File Locations:**
+
 - Backend config: `backend/.env`
 - Frontend config: `.env` (root folder)
 
 **Backend .env format:**
+
 ```bash
 OPENWEATHER_API_KEY=your_32_character_key
 OPENAI_API_KEY=your_openai_key_optional
 ```
 
 **Test Commands:**
+
 ```bash
 # Check config
 curl http://localhost:8000/config/check
@@ -155,6 +166,7 @@ curl http://localhost:8000/health
 ## Need Help?
 
 If you're still having issues:
+
 1. Check the backend terminal for error messages
 2. Verify the key is exactly 32 characters
 3. Make sure you waited 10-15 minutes for activation

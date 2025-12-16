@@ -33,12 +33,14 @@ Frontend will be available at: http://localhost:3000
 ## Configuration
 
 ### Backend (.env in backend/)
+
 ```bash
 OPENWEATHER_API_KEY=your_key_here
 OPENAI_API_KEY=your_key_here  # Optional for AI predictions
 ```
 
 ### Frontend (.env in root/)
+
 ```bash
 VITE_BACKEND_URL=http://localhost:8000
 ```
@@ -54,14 +56,17 @@ VITE_BACKEND_URL=http://localhost:8000
 ## Troubleshooting
 
 **Weather shows "Farm Location (Offline)"?**
+
 - Backend is not running
 - Check backend is at http://localhost:8000
 - Check browser console for errors
 
 **Weather shows mock data?**
+
 - OpenWeatherMap API key not set in backend/.env
 - Backend will use mock data if no API key
 
 **CORS errors?**
+
 - Backend CORS is configured for http://localhost:3000
 - Make sure frontend is running on port 3000

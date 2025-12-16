@@ -5,6 +5,7 @@
 Your API key is configured but returning "Invalid API Key" errors. Here's why and how to fix it:
 
 ### Current Status
+
 - ✅ API key is in the correct location (`backend/.env`)
 - ✅ Backend is reading the key (31 characters detected)
 - ❌ API key appears to be **31 characters** instead of 32
@@ -13,6 +14,7 @@ Your API key is configured but returning "Invalid API Key" errors. Here's why an
 ### The Problem
 
 OpenWeatherMap API keys are **exactly 32 characters** long. Your key is showing as 31 characters, which means:
+
 1. The key might be truncated (missing one character)
 2. There might be a typo when copying it
 3. The key might not be fully activated yet
@@ -29,10 +31,11 @@ OpenWeatherMap API keys are **exactly 32 characters** long. Your key is showing 
    - Example format: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`
 
 3. **Update `backend/.env`**:
+
    ```bash
    OPENWEATHER_API_KEY=your_full_32_character_key_here
    ```
-   
+
    **Important**:
    - No quotes around the key
    - No spaces
@@ -50,9 +53,11 @@ OpenWeatherMap API keys are **exactly 32 characters** long. Your key is showing 
 ### Verify the Fix
 
 1. **Check key length**:
+
    ```bash
    curl http://localhost:8000/config/check
    ```
+
    Should show: `"openweather_api_key_length": 32`
 
 2. **Test weather endpoint**:
@@ -79,6 +84,7 @@ moometrics/
 ### Alternative: Use Mock Data
 
 If you don't want to use a real API key right now, the weather widget will automatically use mock data. It will show:
+
 - Temperature: 22°C
 - Condition: Sunny
 - Location: "Mock Data (Invalid API Key)"

@@ -21,11 +21,13 @@ Open your browser to: **http://localhost:3000**
 Click the **location button** in the header (top right) and choose:
 
 **Option A: Browser Geolocation**
+
 - Click "Use My Current Location"
 - Allow browser location access
 - Weather will load for your actual location
 
 **Option B: Manual Coordinates**
+
 - Enter latitude and longitude
 - Example: New York (40.7128, -74.0060)
 - Click "Save Manual Location"
@@ -33,6 +35,7 @@ Click the **location button** in the header (top right) and choose:
 ### 4. Verify Weather Data
 
 The weather card should show:
+
 - Current temperature
 - Weather condition
 - Humidity
@@ -46,6 +49,7 @@ The weather card should show:
 **Cause**: Backend is not responding
 
 **Solution**:
+
 ```bash
 # Check if backend is running
 curl http://localhost:8000/health
@@ -61,17 +65,20 @@ uvicorn app.main:app --reload --port 8000
 **Cause**: OpenWeatherMap API key issue
 
 **Check**:
+
 1. Open `backend/.env`
 2. Verify `OPENWEATHER_API_KEY` is set correctly
 3. API key should be 32 characters long
 4. No spaces or quotes around the key
 
 **Format**:
+
 ```bash
 OPENWEATHER_API_KEY=your32characterapikeyhere
 ```
 
 **Get a valid API key**:
+
 1. Go to https://openweathermap.org/api
 2. Sign up for free account
 3. Generate API key (takes ~10 minutes to activate)
@@ -80,6 +87,7 @@ OPENWEATHER_API_KEY=your32characterapikeyhere
 6. Restart backend server
 
 **Restart backend after changing .env**:
+
 ```bash
 # Stop current server (Ctrl+C in backend terminal)
 # Then restart:
@@ -91,6 +99,7 @@ uvicorn app.main:app --reload --port 8000
 **Cause**: Invalid or incomplete API key
 
 **Solution**:
+
 - Verify API key is exactly 32 characters
 - Check for typos or extra spaces
 - Ensure API key is activated (wait 10-15 minutes after creation)
@@ -107,6 +116,7 @@ uvicorn app.main:app --reload --port 8000
 **Cause**: Browser cache or location context issue
 
 **Solution**:
+
 1. Hard refresh browser (Cmd+Shift+R or Ctrl+Shift+R)
 2. Clear localStorage: Open DevTools → Application → Local Storage → Clear
 3. Reload page
@@ -114,18 +124,21 @@ uvicorn app.main:app --reload --port 8000
 ## Testing Backend API Directly
 
 ### Health Check
+
 ```bash
 curl http://localhost:8000/health
 # Expected: {"status":"healthy"}
 ```
 
 ### Weather Endpoint
+
 ```bash
 curl "http://localhost:8000/api/weather?lat=40.7128&lon=-74.0060"
 # Expected: JSON with temperature, condition, etc.
 ```
 
 ### API Documentation
+
 Open: http://localhost:8000/docs
 
 ## Verification Checklist
@@ -160,6 +173,7 @@ Before deploying to production:
 ## Support
 
 If issues persist:
+
 1. Check browser console for errors (F12 → Console)
 2. Check backend terminal for error messages
 3. Verify both servers are running

@@ -1,10 +1,12 @@
 """Pydantic models for API request/response schemas."""
+
 from pydantic import BaseModel
 from typing import Optional
 
 
 class WeatherResponse(BaseModel):
     """Weather data response model."""
+
     temperature: float
     condition: str
     location: str
@@ -15,6 +17,7 @@ class WeatherResponse(BaseModel):
 
 class PredictionRequest(BaseModel):
     """AI prediction request model."""
+
     crop_type: str
     latitude: float
     longitude: float
@@ -24,6 +27,7 @@ class PredictionRequest(BaseModel):
 
 class PredictionResponse(BaseModel):
     """AI prediction response model."""
+
     recommended_planting_date: str
     expected_harvest_date: str
     confidence: float

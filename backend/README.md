@@ -36,6 +36,7 @@ cp .env.example .env
 ```
 
 Required environment variables:
+
 - `OPENWEATHER_API_KEY`: Your OpenWeatherMap API key
 - `OPENAI_API_KEY`: Your OpenAI API key (optional, uses mock data if not provided)
 
@@ -57,11 +58,13 @@ The API will be available at `http://localhost:8000`
 Get current weather data for specified coordinates.
 
 **Example Request:**
+
 ```bash
 curl "http://localhost:8000/api/weather?lat=40.7128&lon=-74.0060"
 ```
 
 **Example Response:**
+
 ```json
 {
   "temperature": 22.0,
@@ -80,6 +83,7 @@ curl "http://localhost:8000/api/weather?lat=40.7128&lon=-74.0060"
 Get AI-powered planting and harvest predictions.
 
 **Example Request:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/predictions/planting" \
   -H "Content-Type: application/json" \
@@ -93,6 +97,7 @@ curl -X POST "http://localhost:8000/api/predictions/planting" \
 ```
 
 **Example Response:**
+
 ```json
 {
   "recommended_planting_date": "2024-04-15",
@@ -115,6 +120,7 @@ curl -X POST "http://localhost:8000/api/predictions/planting" \
 Check if the API is running.
 
 **Example Response:**
+
 ```json
 {
   "status": "healthy"
@@ -124,6 +130,7 @@ Check if the API is running.
 ## API Documentation
 
 Interactive API documentation is available at:
+
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
@@ -181,6 +188,7 @@ For production deployment:
 4. Configure proper CORS origins
 
 Example production command:
+
 ```bash
 gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
