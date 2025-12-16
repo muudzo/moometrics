@@ -15,3 +15,7 @@ openai==1.10.0
 # Data validation
 pydantic==2.5.3
 pydantic-settings==2.1.0
+
+# Linting and Formatting
+flake8==7.0.0
+black==24.1.0
