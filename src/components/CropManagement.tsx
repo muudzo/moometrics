@@ -1,14 +1,22 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Progress } from "./ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Progress } from './ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 import {
   Wheat,
   Calendar as CalendarIcon,
@@ -20,8 +28,8 @@ import {
   Edit,
   Eye,
   Sprout,
-  ArrowRight
-} from "lucide-react";
+  ArrowRight,
+} from 'lucide-react';
 
 interface CropField {
   id: number;
@@ -48,29 +56,29 @@ interface Task {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "Ready to Harvest":
-      return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
-    case "Growing":
-      return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
-    case "Flowering":
-      return "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800";
-    case "Ripening":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800";
+    case 'Ready to Harvest':
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+    case 'Growing':
+      return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+    case 'Flowering':
+      return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
+    case 'Ripening':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800";
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
   }
 };
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case "Critical":
-      return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800";
-    case "High":
-      return "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800";
-    case "Medium":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800";
+    case 'Critical':
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+    case 'High':
+      return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+    case 'Medium':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800";
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
   }
 };
 
@@ -81,7 +89,7 @@ export function CropManagement() {
     name: '',
     crop: '',
     acres: '',
-    planted: ''
+    planted: '',
   });
 
   const hasFields = cropFields.length > 0;
@@ -95,11 +103,11 @@ export function CropManagement() {
         acres: parseInt(newField.acres),
         planted: newField.planted,
         expectedHarvest: calculateExpectedHarvest(newField.planted, newField.crop),
-        status: "Growing",
+        status: 'Growing',
         progress: 15,
         yieldPrediction: getDefaultYield(newField.crop),
         soilMoisture: 75,
-        lastWatered: new Date().toISOString().split('T')[0]
+        lastWatered: new Date().toISOString().split('T')[0],
       };
 
       setCropFields([...cropFields, field]);
@@ -111,17 +119,18 @@ export function CropManagement() {
 
   const calculateExpectedHarvest = (plantedDate: string, crop: string) => {
     const planted = new Date(plantedDate);
-    const daysToAdd = crop === 'Corn' ? 180 : crop === 'Wheat' ? 150 : crop === 'Soybeans' ? 180 : 165;
+    const daysToAdd =
+      crop === 'Corn' ? 180 : crop === 'Wheat' ? 150 : crop === 'Soybeans' ? 180 : 165;
     const harvest = new Date(planted.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
     return harvest.toISOString().split('T')[0];
   };
 
   const getDefaultYield = (crop: string) => {
     const yields = {
-      'Corn': '180 bu/acre',
-      'Wheat': '65 bu/acre',
-      'Soybeans': '50 bu/acre',
-      'Barley': '70 bu/acre'
+      Corn: '180 bu/acre',
+      Wheat: '65 bu/acre',
+      Soybeans: '50 bu/acre',
+      Barley: '70 bu/acre',
     };
     return yields[crop as keyof typeof yields] || '75 bu/acre';
   };
@@ -132,7 +141,9 @@ export function CropManagement() {
         <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
           <div>
             <h1 className="text-3xl font-semibold text-foreground">Crop Management</h1>
-            <p className="text-muted-foreground">Monitor and manage your crop fields and planting schedules.</p>
+            <p className="text-muted-foreground">
+              Monitor and manage your crop fields and planting schedules.
+            </p>
           </div>
         </div>
 
@@ -150,7 +161,8 @@ export function CropManagement() {
           <div className="text-center space-y-2 max-w-md">
             <h2 className="text-2xl font-semibold text-foreground">No crop fields yet</h2>
             <p className="text-muted-foreground">
-              Start by adding your first crop field to track planting schedules, monitor growth, and predict yields.
+              Start by adding your first crop field to track planting schedules, monitor growth, and
+              predict yields.
             </p>
           </div>
 
@@ -180,7 +192,10 @@ export function CropManagement() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="crop-type">Crop Type</Label>
-                  <Select value={newField.crop} onValueChange={(value) => setNewField({ ...newField, crop: value })}>
+                  <Select
+                    value={newField.crop}
+                    onValueChange={(value) => setNewField({ ...newField, crop: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select crop type" />
                     </SelectTrigger>
@@ -240,7 +255,9 @@ export function CropManagement() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Add Field Information</p>
-                    <p className="text-sm text-muted-foreground">Enter your field name, crop type, size, and planting date</p>
+                    <p className="text-sm text-muted-foreground">
+                      Enter your field name, crop type, size, and planting date
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -249,7 +266,9 @@ export function CropManagement() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Track Growth Progress</p>
-                    <p className="text-sm text-muted-foreground">Monitor soil moisture, growth stages, and update regularly</p>
+                    <p className="text-sm text-muted-foreground">
+                      Monitor soil moisture, growth stages, and update regularly
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -258,7 +277,9 @@ export function CropManagement() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Schedule Tasks</p>
-                    <p className="text-sm text-muted-foreground">Set up watering, fertilizing, and harvesting schedules</p>
+                    <p className="text-sm text-muted-foreground">
+                      Set up watering, fertilizing, and harvesting schedules
+                    </p>
                   </div>
                 </div>
               </div>
@@ -274,7 +295,9 @@ export function CropManagement() {
       <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Crop Management</h1>
-          <p className="text-muted-foreground">Monitor and manage your crop fields and planting schedules.</p>
+          <p className="text-muted-foreground">
+            Monitor and manage your crop fields and planting schedules.
+          </p>
         </div>
         <Dialog open={isAddFieldOpen} onOpenChange={setIsAddFieldOpen}>
           <DialogTrigger asChild>
@@ -302,7 +325,10 @@ export function CropManagement() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="crop-type">Crop Type</Label>
-                <Select value={newField.crop} onValueChange={(value) => setNewField({ ...newField, crop: value })}>
+                <Select
+                  value={newField.crop}
+                  onValueChange={(value) => setNewField({ ...newField, crop: value })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select crop type" />
                   </SelectTrigger>
@@ -376,9 +402,11 @@ export function CropManagement() {
                 <Wheat className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{new Set(cropFields.map(f => f.crop)).size}</div>
+                <div className="text-2xl font-bold">
+                  {new Set(cropFields.map((f) => f.crop)).size}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {Array.from(new Set(cropFields.map(f => f.crop))).join(", ")}
+                  {Array.from(new Set(cropFields.map((f) => f.crop))).join(', ')}
                 </p>
               </CardContent>
             </Card>
@@ -390,10 +418,11 @@ export function CropManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {cropFields.filter(f => f.status === "Ready to Harvest").length}
+                  {cropFields.filter((f) => f.status === 'Ready to Harvest').length}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {cropFields.find(f => f.status === "Ready to Harvest")?.name || "None ready yet"}
+                  {cropFields.find((f) => f.status === 'Ready to Harvest')?.name ||
+                    'None ready yet'}
                 </p>
               </CardContent>
             </Card>
@@ -405,7 +434,13 @@ export function CropManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {cropFields.length > 0 ? Math.round(cropFields.reduce((sum, field) => sum + field.soilMoisture, 0) / cropFields.length) : 0}%
+                  {cropFields.length > 0
+                    ? Math.round(
+                        cropFields.reduce((sum, field) => sum + field.soilMoisture, 0) /
+                          cropFields.length
+                      )
+                    : 0}
+                  %
                 </div>
                 <p className="text-xs text-muted-foreground">Optimal range: 65-80%</p>
               </CardContent>
@@ -562,7 +597,9 @@ export function CropManagement() {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle>{field.name}</CardTitle>
-                      <CardDescription>{field.crop} • {field.acres} acres</CardDescription>
+                      <CardDescription>
+                        {field.crop} • {field.acres} acres
+                      </CardDescription>
                     </div>
                     <Badge variant="outline" className={getStatusColor(field.status)}>
                       {field.status}
@@ -582,7 +619,9 @@ export function CropManagement() {
                         <Droplets className="w-4 h-4 text-blue-500" />
                         <span>{field.soilMoisture}%</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Last watered: {field.lastWatered}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Last watered: {field.lastWatered}
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label>Expected Harvest</Label>
@@ -610,12 +649,17 @@ export function CropManagement() {
             <Card>
               <CardHeader>
                 <CardTitle>Yield Predictions</CardTitle>
-                <CardDescription>AI-powered harvest predictions based on current conditions</CardDescription>
+                <CardDescription>
+                  AI-powered harvest predictions based on current conditions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {cropFields.map((field) => (
-                    <div key={field.id} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div
+                      key={field.id}
+                      className="flex justify-between items-center p-3 border rounded-lg"
+                    >
                       <div>
                         <p className="font-medium">{field.name}</p>
                         <p className="text-sm text-muted-foreground">{field.crop}</p>

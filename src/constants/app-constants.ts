@@ -1,56 +1,50 @@
-import { 
-  LayoutDashboard, 
-  Wheat, 
-  PawPrint, 
-  Tractor, 
-  DollarSign, 
-} from 'lucide-react';
+import { LayoutDashboard, Wheat, PawPrint, Tractor, DollarSign } from 'lucide-react';
 
 export const navigationItems = [
   {
-    title: "Dashboard",
+    title: 'Dashboard',
     icon: LayoutDashboard,
-    component: "dashboard"
+    component: 'dashboard',
   },
   {
-    title: "Crop Management",
+    title: 'Crop Management',
     icon: Wheat,
-    component: "crops"
+    component: 'crops',
   },
   {
-    title: "Livestock",
+    title: 'Livestock',
     icon: PawPrint,
-    component: "livestock"
+    component: 'livestock',
   },
   {
-    title: "Equipment",
+    title: 'Equipment',
     icon: Tractor,
-    component: "equipment"
+    component: 'equipment',
   },
   {
-    title: "Finance & Sales",
+    title: 'Finance & Sales',
     icon: DollarSign,
-    component: "finance"
-  }
+    component: 'finance',
+  },
 ];
 
 export const notifications = [
   {
     id: 1,
-    message: "Harvest due for South Field B (Wheat)",
-    type: "critical",
-    time: "2 hours ago"
+    message: 'Harvest due for South Field B (Wheat)',
+    type: 'critical',
+    time: '2 hours ago',
   },
   {
     id: 2,
-    message: "Cattle health check scheduled tomorrow",
-    type: "info",
-    time: "4 hours ago"
+    message: 'Cattle health check scheduled tomorrow',
+    type: 'info',
+    time: '4 hours ago',
   },
   {
     id: 3,
-    message: "Equipment maintenance required (Kubota M5-171)",
-    type: "warning",
-    time: "1 day ago"
+    message: 'Equipment maintenance required (Kubota M5-171)',
+    type: 'warning',
+    time: '1 day ago',
   },
 ];

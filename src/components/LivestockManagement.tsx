@@ -1,14 +1,22 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Progress } from "./ui/progress";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Progress } from './ui/progress';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 import {
   PawPrint,
   Heart,
@@ -24,8 +32,8 @@ import {
   Baby,
   Beef,
   Bird,
-  Rabbit
-} from "lucide-react";
+  Rabbit,
+} from 'lucide-react';
 
 interface Animal {
   id: number;
@@ -44,16 +52,16 @@ interface Animal {
 
 const getHealthColor = (status: string) => {
   switch (status) {
-    case "Excellent":
-      return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
-    case "Good":
-      return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
-    case "Fair":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800";
-    case "Poor":
-      return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800";
+    case 'Excellent':
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+    case 'Good':
+      return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+    case 'Fair':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+    case 'Poor':
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800";
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
   }
 };
 
@@ -65,7 +73,7 @@ export function LivestockManagement() {
     count: '',
     breed: '',
     avgWeight: '',
-    avgAge: ''
+    avgAge: '',
   });
 
   const hasLivestock = livestock.length > 0;
@@ -78,12 +86,12 @@ export function LivestockManagement() {
         count: parseInt(newAnimal.count),
         avgWeight: parseInt(newAnimal.avgWeight) || getDefaultWeight(newAnimal.type),
         avgAge: parseInt(newAnimal.avgAge) || 12,
-        healthStatus: "Good",
+        healthStatus: 'Good',
         feedingSchedule: getDefaultFeeding(newAnimal.type),
         lastHealthCheck: new Date().toISOString().split('T')[0],
         vaccinated: parseInt(newAnimal.count),
         breeding: 0,
-        breed: newAnimal.breed
+        breed: newAnimal.breed,
       };
 
       setLivestock([...livestock, animal]);
@@ -95,22 +103,22 @@ export function LivestockManagement() {
 
   const getDefaultWeight = (type: string) => {
     const weights = {
-      'Cattle': 1200,
-      'Pigs': 250,
-      'Chickens': 5,
-      'Sheep': 70,
-      'Goats': 60
+      Cattle: 1200,
+      Pigs: 250,
+      Chickens: 5,
+      Sheep: 70,
+      Goats: 60,
     };
     return weights[type as keyof typeof weights] || 100;
   };
 
   const getDefaultFeeding = (type: string) => {
     const schedules = {
-      'Cattle': '2x daily',
-      'Pigs': '3x daily',
-      'Chickens': 'Continuous',
-      'Sheep': '2x daily',
-      'Goats': '2x daily'
+      Cattle: '2x daily',
+      Pigs: '3x daily',
+      Chickens: 'Continuous',
+      Sheep: '2x daily',
+      Goats: '2x daily',
     };
     return schedules[type as keyof typeof schedules] || '2x daily';
   };
@@ -135,7 +143,9 @@ export function LivestockManagement() {
         <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
           <div>
             <h1 className="text-3xl font-semibold text-foreground">Livestock Management</h1>
-            <p className="text-muted-foreground">Monitor animal health, feeding, and breeding programs.</p>
+            <p className="text-muted-foreground">
+              Monitor animal health, feeding, and breeding programs.
+            </p>
           </div>
         </div>
 
@@ -153,7 +163,8 @@ export function LivestockManagement() {
           <div className="text-center space-y-2 max-w-md">
             <h2 className="text-2xl font-semibold text-foreground">No livestock registered yet</h2>
             <p className="text-muted-foreground">
-              Start by adding your animals to track their health, feeding schedules, and breeding programs.
+              Start by adding your animals to track their health, feeding schedules, and breeding
+              programs.
             </p>
           </div>
 
@@ -174,7 +185,10 @@ export function LivestockManagement() {
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="animal-type">Animal Type</Label>
-                  <Select value={newAnimal.type} onValueChange={(value) => setNewAnimal({ ...newAnimal, type: value })}>
+                  <Select
+                    value={newAnimal.type}
+                    onValueChange={(value) => setNewAnimal({ ...newAnimal, type: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select animal type" />
                     </SelectTrigger>
@@ -257,7 +271,9 @@ export function LivestockManagement() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Register Animal Groups</p>
-                    <p className="text-sm text-muted-foreground">Add your cattle, pigs, chickens, or other livestock by type and count</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add your cattle, pigs, chickens, or other livestock by type and count
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -266,7 +282,9 @@ export function LivestockManagement() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Monitor Health</p>
-                    <p className="text-sm text-muted-foreground">Track vaccinations, health checks, and breeding status</p>
+                    <p className="text-sm text-muted-foreground">
+                      Track vaccinations, health checks, and breeding status
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -275,7 +293,9 @@ export function LivestockManagement() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Manage Feeding</p>
-                    <p className="text-sm text-muted-foreground">Set up feeding schedules and track feed consumption</p>
+                    <p className="text-sm text-muted-foreground">
+                      Set up feeding schedules and track feed consumption
+                    </p>
                   </div>
                 </div>
               </div>
@@ -288,15 +308,30 @@ export function LivestockManagement() {
 
   const totalAnimals = livestock.reduce((sum, group) => sum + group.count, 0);
   const totalBreeding = livestock.reduce((sum, group) => sum + group.breeding, 0);
-  const avgHealthScore = livestock.length > 0 ?
-    livestock.reduce((sum, group) => sum + (group.healthStatus === 'Excellent' ? 100 : group.healthStatus === 'Good' ? 85 : group.healthStatus === 'Fair' ? 70 : 50), 0) / livestock.length : 0;
+  const avgHealthScore =
+    livestock.length > 0
+      ? livestock.reduce(
+          (sum, group) =>
+            sum +
+            (group.healthStatus === 'Excellent'
+              ? 100
+              : group.healthStatus === 'Good'
+                ? 85
+                : group.healthStatus === 'Fair'
+                  ? 70
+                  : 50),
+          0
+        ) / livestock.length
+      : 0;
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Livestock Management</h1>
-          <p className="text-muted-foreground">Monitor animal health, feeding, and breeding programs.</p>
+          <p className="text-muted-foreground">
+            Monitor animal health, feeding, and breeding programs.
+          </p>
         </div>
         <Dialog open={isAddAnimalOpen} onOpenChange={setIsAddAnimalOpen}>
           <DialogTrigger asChild>
@@ -315,7 +350,10 @@ export function LivestockManagement() {
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="animal-type">Animal Type</Label>
-                <Select value={newAnimal.type} onValueChange={(value) => setNewAnimal({ ...newAnimal, type: value })}>
+                <Select
+                  value={newAnimal.type}
+                  onValueChange={(value) => setNewAnimal({ ...newAnimal, type: value })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select animal type" />
                   </SelectTrigger>
@@ -400,7 +438,9 @@ export function LivestockManagement() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalAnimals}</div>
-                <p className="text-xs text-muted-foreground">{livestock.length} groups registered</p>
+                <p className="text-xs text-muted-foreground">
+                  {livestock.length} groups registered
+                </p>
               </CardContent>
             </Card>
 
@@ -469,7 +509,9 @@ export function LivestockManagement() {
                           {group.healthStatus}
                         </Badge>
                       </TableCell>
-                      <TableCell>{group.vaccinated}/{group.count}</TableCell>
+                      <TableCell>
+                        {group.vaccinated}/{group.count}
+                      </TableCell>
                       <TableCell>{group.breeding}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -510,7 +552,10 @@ export function LivestockManagement() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {livestock.map((group) => (
-                  <div key={group.id} className="flex justify-between items-center p-3 border rounded-lg">
+                  <div
+                    key={group.id}
+                    className="flex justify-between items-center p-3 border rounded-lg"
+                  >
                     <div>
                       <p className="font-medium">{group.type} Feed</p>
                       <p className="text-sm text-muted-foreground">
@@ -519,7 +564,17 @@ export function LivestockManagement() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">
-                        ${Math.round(group.count * (group.type === 'Cattle' ? 0.75 : group.type === 'Pigs' ? 0.88 : group.type === 'Chickens' ? 0.24 : 0.65))}
+                        $
+                        {Math.round(
+                          group.count *
+                            (group.type === 'Cattle'
+                              ? 0.75
+                              : group.type === 'Pigs'
+                                ? 0.88
+                                : group.type === 'Chickens'
+                                  ? 0.24
+                                  : 0.65)
+                        )}
                       </p>
                       <p className="text-sm text-muted-foreground">Daily cost</p>
                     </div>
@@ -554,16 +609,20 @@ export function LivestockManagement() {
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Avg Weight:</span> {group.avgWeight} lbs
+                          <span className="text-muted-foreground">Avg Weight:</span>{' '}
+                          {group.avgWeight} lbs
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Avg Age:</span> {group.avgAge} months
+                          <span className="text-muted-foreground">Avg Age:</span> {group.avgAge}{' '}
+                          months
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Last checkup:</span> {group.lastHealthCheck}
+                          <span className="text-muted-foreground">Last checkup:</span>{' '}
+                          {group.lastHealthCheck}
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Vaccinated:</span> {group.vaccinated}/{group.count}
+                          <span className="text-muted-foreground">Vaccinated:</span>{' '}
+                          {group.vaccinated}/{group.count}
                         </div>
                       </div>
                       <div className="flex gap-2 pt-2">
@@ -664,8 +723,33 @@ export function LivestockManagement() {
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p>Count: {group.count} animals</p>
-                      <p>Daily consumption: {Math.round(group.count * (group.type === 'Cattle' ? 10 : group.type === 'Pigs' ? 10 : group.type === 'Chickens' ? 0.3 : 7))} lbs</p>
-                      <p>Cost per day: ${Math.round(group.count * (group.type === 'Cattle' ? 0.75 : group.type === 'Pigs' ? 0.88 : group.type === 'Chickens' ? 0.24 : 0.65))}</p>
+                      <p>
+                        Daily consumption:{' '}
+                        {Math.round(
+                          group.count *
+                            (group.type === 'Cattle'
+                              ? 10
+                              : group.type === 'Pigs'
+                                ? 10
+                                : group.type === 'Chickens'
+                                  ? 0.3
+                                  : 7)
+                        )}{' '}
+                        lbs
+                      </p>
+                      <p>
+                        Cost per day: $
+                        {Math.round(
+                          group.count *
+                            (group.type === 'Cattle'
+                              ? 0.75
+                              : group.type === 'Pigs'
+                                ? 0.88
+                                : group.type === 'Chickens'
+                                  ? 0.24
+                                  : 0.65)
+                        )}
+                      </p>
                     </div>
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm">

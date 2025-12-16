@@ -1,8 +1,19 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import {
   Wheat,
   PawPrint,
@@ -11,19 +22,15 @@ import {
   TrendingUp,
   CheckCircle,
   ArrowRight,
-  Sparkles
-} from "lucide-react";
+  Sparkles,
+} from 'lucide-react';
 import { WeatherCard } from '@/features/weather/components/WeatherCard';
 
-
-
-const sampleRevenueData = [
-  { month: 'This Month', revenue: 0, expenses: 1200 }
-];
+const sampleRevenueData = [{ month: 'This Month', revenue: 0, expenses: 1200 }];
 
 const sampleLivestockData = [
   { name: 'Cattle', value: 25, color: '#4a5c2a' },
-  { name: 'Chickens', value: 50, color: '#8ba155' }
+  { name: 'Chickens', value: 50, color: '#8ba155' },
 ];
 interface FarmData {
   crops: Array<{ type: string; planted?: number; harvested?: number; yield?: number }>;
@@ -38,19 +45,20 @@ interface DashboardProps {
 }
 
 export function Dashboard({ farmData, onNavigate }: DashboardProps) {
-  const [showWelcome] = useState(!farmData || (
-    farmData.crops.length === 0 &&
-    farmData.livestock.length === 0 &&
-    farmData.equipment.length === 0 &&
-    farmData.transactions.length === 0
-  ));
-
-  const hasData = farmData && (
-    farmData.crops.length > 0 ||
-    farmData.livestock.length > 0 ||
-    farmData.equipment.length > 0 ||
-    farmData.transactions.length > 0
+  const [showWelcome] = useState(
+    !farmData ||
+      (farmData.crops.length === 0 &&
+        farmData.livestock.length === 0 &&
+        farmData.equipment.length === 0 &&
+        farmData.transactions.length === 0)
   );
+
+  const hasData =
+    farmData &&
+    (farmData.crops.length > 0 ||
+      farmData.livestock.length > 0 ||
+      farmData.equipment.length > 0 ||
+      farmData.transactions.length > 0);
 
   if (showWelcome && !hasData) {
     return (
@@ -67,7 +75,8 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
           </div>
           <h1 className="text-4xl font-semibold text-foreground">Welcome to MooMetrics!</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Your comprehensive farm management system is ready to help you track crops, livestock, equipment, and finances all in one place.
+            Your comprehensive farm management system is ready to help you track crops, livestock,
+            equipment, and finances all in one place.
           </p>
         </div>
 
@@ -78,7 +87,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-card border-border border-dashed">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-card-foreground">Crop Fields</CardTitle>
+              <CardTitle className="text-sm font-medium text-card-foreground">
+                Crop Fields
+              </CardTitle>
               <Wheat className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -144,7 +155,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                     </div>
                     <div className="text-left">
                       <p className="font-medium">Add Your First Field</p>
-                      <p className="text-sm text-muted-foreground">Start tracking crop planting and growth</p>
+                      <p className="text-sm text-muted-foreground">
+                        Start tracking crop planting and growth
+                      </p>
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -223,21 +236,28 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-card-foreground">Start Small</p>
-                  <p className="text-sm text-muted-foreground">Begin with just one or two crops to get familiar with the system</p>
+                  <p className="text-sm text-muted-foreground">
+                    Begin with just one or two crops to get familiar with the system
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-card-foreground">Regular Updates</p>
-                  <p className="text-sm text-muted-foreground">Update your data regularly for accurate tracking and predictions</p>
+                  <p className="text-sm text-muted-foreground">
+                    Update your data regularly for accurate tracking and predictions
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-card-foreground">Use All Features</p>
-                  <p className="text-sm text-muted-foreground">Explore crops, livestock, equipment, and finance sections for complete management</p>
+                  <p className="text-sm text-muted-foreground">
+                    Explore crops, livestock, equipment, and finance sections for complete
+                    management
+                  </p>
                 </div>
               </div>
             </div>
@@ -252,13 +272,14 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
   const revenueData = sampleRevenueData;
 
   // Convert livestock data to chart format
-  const livestockData = (farmData?.livestock && farmData.livestock.length > 0)
-    ? farmData.livestock.map(group => ({
-      name: group.type,
-      value: group.count || 0,
-      color: '#4a5c2a'
-    }))
-    : sampleLivestockData;
+  const livestockData =
+    farmData?.livestock && farmData.livestock.length > 0
+      ? farmData.livestock.map((group) => ({
+          name: group.type,
+          value: group.count || 0,
+          color: '#4a5c2a',
+        }))
+      : sampleLivestockData;
 
   return (
     <div className="space-y-6 p-6">
@@ -267,7 +288,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
         <div>
           <h1 className="text-3xl font-semibold text-foreground">MooMetrics Dashboard</h1>
           <p className="text-muted-foreground">
-            {hasData ? "Here's what's happening on your farm today." : "Welcome back! Start by adding your first data."}
+            {hasData
+              ? "Here's what's happening on your farm today."
+              : 'Welcome back! Start by adding your first data.'}
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -285,7 +308,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Total Crop Fields</CardTitle>
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Total Crop Fields
+            </CardTitle>
             <Wheat className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -297,7 +322,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                   Great start!
                 </span>
               ) : (
-                "Ready to add your first field?"
+                'Ready to add your first field?'
               )}
             </p>
           </CardContent>
@@ -305,12 +330,17 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
 
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Livestock Count</CardTitle>
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Livestock Count
+            </CardTitle>
             <PawPrint className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">
-              {livestockData.reduce((sum: number, item: { value?: number }) => sum + (item.value || 0), 0)}
+              {livestockData.reduce(
+                (sum: number, item: { value?: number }) => sum + (item.value || 0),
+                0
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               {livestockData.length > 0 ? (
@@ -319,7 +349,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                   Animals registered
                 </span>
               ) : (
-                "Add your animals to track them"
+                'Add your animals to track them'
               )}
             </p>
           </CardContent>
@@ -327,7 +357,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
 
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Equipment Status</CardTitle>
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Equipment Status
+            </CardTitle>
             <Tractor className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -335,21 +367,21 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
               {farmData?.equipment?.length || 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {farmData?.equipment?.length ? "Equipment tracked" : "Add your equipment"}
+              {farmData?.equipment?.length ? 'Equipment tracked' : 'Add your equipment'}
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Monthly Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Monthly Revenue
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">$0</div>
-            <p className="text-xs text-muted-foreground">
-              Start recording transactions
-            </p>
+            <p className="text-xs text-muted-foreground">Start recording transactions</p>
           </CardContent>
         </Card>
       </div>
@@ -374,7 +406,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
-                      color: 'hsl(var(--card-foreground))'
+                      color: 'hsl(var(--card-foreground))',
                     }}
                   />
                   <Bar dataKey="revenue" fill="var(--color-chart-1)" name="Revenue" />
@@ -397,7 +429,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }: { name: string; value: number }) => `${name}: ${value}`}
+                    label={({ name, value }: { name: string; value: number }) =>
+                      `${name}: ${value}`
+                    }
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -411,7 +445,7 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
-                      color: 'hsl(var(--card-foreground))'
+                      color: 'hsl(var(--card-foreground))',
                     }}
                   />
                 </PieChart>
@@ -442,7 +476,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
             onClick={() => onNavigate?.('livestock')}
           >
             <PawPrint className="w-4 h-4 mr-2" />
-            {livestockData.length === 0 ? 'Register Your First Animals' : 'Record Livestock Health Check'}
+            {livestockData.length === 0
+              ? 'Register Your First Animals'
+              : 'Record Livestock Health Check'}
           </Button>
           <Button
             className="w-full justify-start"
@@ -450,7 +486,9 @@ export function Dashboard({ farmData, onNavigate }: DashboardProps) {
             onClick={() => onNavigate?.('equipment')}
           >
             <Tractor className="w-4 h-4 mr-2" />
-            {farmData?.equipment?.length === 0 ? 'Add Farm Equipment' : 'Schedule Equipment Maintenance'}
+            {farmData?.equipment?.length === 0
+              ? 'Add Farm Equipment'
+              : 'Schedule Equipment Maintenance'}
           </Button>
           <Button
             className="w-full justify-start"

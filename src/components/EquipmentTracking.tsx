@@ -1,14 +1,22 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Progress } from "./ui/progress";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Progress } from './ui/progress';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 import {
   Tractor,
   Wrench,
@@ -23,8 +31,8 @@ import {
   MapPin,
   DollarSign,
   TrendingUp,
-  Settings
-} from "lucide-react";
+  Settings,
+} from 'lucide-react';
 
 interface Equipment {
   id: string;
@@ -45,16 +53,16 @@ interface Equipment {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "Operational":
-      return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
-    case "In Use":
-      return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
-    case "Maintenance Required":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800";
-    case "Out of Service":
-      return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800";
+    case 'Operational':
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+    case 'In Use':
+      return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+    case 'Maintenance Required':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+    case 'Out of Service':
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800";
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
   }
 };
 
@@ -67,7 +75,7 @@ export function EquipmentTracking() {
     make: '',
     model: '',
     year: '',
-    location: ''
+    location: '',
   });
 
   const hasEquipment = equipment.length > 0;
@@ -80,15 +88,15 @@ export function EquipmentTracking() {
         type: newEquipment.type,
         year: parseInt(newEquipment.year) || new Date().getFullYear(),
         hours: 0,
-        status: "Operational",
-        location: newEquipment.location || "Main Barn",
+        status: 'Operational',
+        location: newEquipment.location || 'Main Barn',
         lastMaintenance: new Date().toISOString().split('T')[0],
         nextMaintenance: getNextMaintenanceDate(),
         fuelLevel: 100,
         efficiency: 95,
         dailyCost: getDefaultDailyCost(newEquipment.type),
         make: newEquipment.make,
-        model: newEquipment.model
+        model: newEquipment.model,
       };
 
       setEquipment([...equipment, equipmentItem]);
@@ -106,12 +114,12 @@ export function EquipmentTracking() {
 
   const getDefaultDailyCost = (type: string) => {
     const costs = {
-      'Tractor': 120,
-      'Harvester': 180,
-      'Seeder': 75,
-      'Cultivator': 65,
-      'Sprayer': 85,
-      'Mower': 55
+      Tractor: 120,
+      Harvester: 180,
+      Seeder: 75,
+      Cultivator: 65,
+      Sprayer: 85,
+      Mower: 55,
     };
     return costs[type as keyof typeof costs] || 100;
   };
@@ -133,7 +141,9 @@ export function EquipmentTracking() {
         <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
           <div>
             <h1 className="text-3xl font-semibold text-foreground">Equipment Tracking</h1>
-            <p className="text-muted-foreground">Monitor machinery status, maintenance, and utilization.</p>
+            <p className="text-muted-foreground">
+              Monitor machinery status, maintenance, and utilization.
+            </p>
           </div>
         </div>
 
@@ -151,7 +161,8 @@ export function EquipmentTracking() {
           <div className="text-center space-y-2 max-w-md">
             <h2 className="text-2xl font-semibold text-foreground">No equipment registered yet</h2>
             <p className="text-muted-foreground">
-              Start by adding your farm equipment to track maintenance schedules, operating hours, and costs.
+              Start by adding your farm equipment to track maintenance schedules, operating hours,
+              and costs.
             </p>
           </div>
 
@@ -181,7 +192,10 @@ export function EquipmentTracking() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="equipment-type">Equipment Type</Label>
-                  <Select value={newEquipment.type} onValueChange={(value) => setNewEquipment({ ...newEquipment, type: value })}>
+                  <Select
+                    value={newEquipment.type}
+                    onValueChange={(value) => setNewEquipment({ ...newEquipment, type: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select equipment type" />
                     </SelectTrigger>
@@ -232,7 +246,9 @@ export function EquipmentTracking() {
                       id="location"
                       placeholder="e.g., Main Barn"
                       value={newEquipment.location}
-                      onChange={(e) => setNewEquipment({ ...newEquipment, location: e.target.value })}
+                      onChange={(e) =>
+                        setNewEquipment({ ...newEquipment, location: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -265,7 +281,9 @@ export function EquipmentTracking() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Register Equipment</p>
-                    <p className="text-sm text-muted-foreground">Add your tractors, harvesters, and other farm machinery</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add your tractors, harvesters, and other farm machinery
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -274,7 +292,9 @@ export function EquipmentTracking() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Track Maintenance</p>
-                    <p className="text-sm text-muted-foreground">Schedule regular maintenance and track operating hours</p>
+                    <p className="text-sm text-muted-foreground">
+                      Schedule regular maintenance and track operating hours
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -283,7 +303,9 @@ export function EquipmentTracking() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Monitor Costs</p>
-                    <p className="text-sm text-muted-foreground">Keep track of fuel usage, repairs, and operating expenses</p>
+                    <p className="text-sm text-muted-foreground">
+                      Keep track of fuel usage, repairs, and operating expenses
+                    </p>
                   </div>
                 </div>
               </div>
@@ -294,8 +316,12 @@ export function EquipmentTracking() {
     );
   }
 
-  const operationalCount = equipment.filter(item => item.status === "Operational" || item.status === "In Use").length;
-  const maintenanceCount = equipment.filter(item => item.status === "Maintenance Required").length;
+  const operationalCount = equipment.filter(
+    (item) => item.status === 'Operational' || item.status === 'In Use'
+  ).length;
+  const maintenanceCount = equipment.filter(
+    (item) => item.status === 'Maintenance Required'
+  ).length;
   const totalDailyCost = equipment.reduce((sum, item) => sum + item.dailyCost, 0);
 
   return (
@@ -303,7 +329,9 @@ export function EquipmentTracking() {
       <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Equipment Tracking</h1>
-          <p className="text-muted-foreground">Monitor machinery status, maintenance, and utilization.</p>
+          <p className="text-muted-foreground">
+            Monitor machinery status, maintenance, and utilization.
+          </p>
         </div>
         <Dialog open={isAddEquipmentOpen} onOpenChange={setIsAddEquipmentOpen}>
           <DialogTrigger asChild>
@@ -331,7 +359,10 @@ export function EquipmentTracking() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="equipment-type">Equipment Type</Label>
-                <Select value={newEquipment.type} onValueChange={(value) => setNewEquipment({ ...newEquipment, type: value })}>
+                <Select
+                  value={newEquipment.type}
+                  onValueChange={(value) => setNewEquipment({ ...newEquipment, type: value })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select equipment type" />
                   </SelectTrigger>
@@ -418,7 +449,8 @@ export function EquipmentTracking() {
               <CardContent>
                 <div className="text-2xl font-bold">{equipment.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {equipment.filter(e => e.type === 'Tractor').length} tractors, {equipment.filter(e => e.type !== 'Tractor').length} implements
+                  {equipment.filter((e) => e.type === 'Tractor').length} tractors,{' '}
+                  {equipment.filter((e) => e.type !== 'Tractor').length} implements
                 </p>
               </CardContent>
             </Card>
@@ -444,7 +476,7 @@ export function EquipmentTracking() {
               <CardContent>
                 <div className="text-2xl font-bold">{maintenanceCount}</div>
                 <p className="text-xs text-muted-foreground">
-                  {maintenanceCount === 0 ? "All equipment operational" : "Requires attention"}
+                  {maintenanceCount === 0 ? 'All equipment operational' : 'Requires attention'}
                 </p>
               </CardContent>
             </Card>
@@ -551,22 +583,27 @@ export function EquipmentTracking() {
                 <CardDescription>Current fuel status across fleet</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {equipment.filter(item => item.fuelLevel > 0).map((item) => (
-                  <div key={item.id} className="flex justify-between items-center p-2 border rounded">
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">{item.type}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <Fuel className="w-4 h-4 text-blue-500" />
-                        <span className={item.fuelLevel < 30 ? 'text-red-600 font-medium' : ''}>
-                          {item.fuelLevel}%
-                        </span>
+                {equipment
+                  .filter((item) => item.fuelLevel > 0)
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-center p-2 border rounded"
+                    >
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">{item.type}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2">
+                          <Fuel className="w-4 h-4 text-blue-500" />
+                          <span className={item.fuelLevel < 30 ? 'text-red-600 font-medium' : ''}>
+                            {item.fuelLevel}%
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </CardContent>
             </Card>
           </div>
@@ -678,7 +715,9 @@ export function EquipmentTracking() {
                   <div key={item.id} className="p-3 border rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium">{item.name}</h4>
-                      <span className="text-sm text-muted-foreground">{item.hours.toLocaleString()} hrs</span>
+                      <span className="text-sm text-muted-foreground">
+                        {item.hours.toLocaleString()} hrs
+                      </span>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">

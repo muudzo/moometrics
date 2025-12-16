@@ -4,14 +4,7 @@ import { SidebarTrigger } from './ui/sidebar';
 import { MooMetricsLogo } from './MooMetricsLogo';
 import { LocationSettings } from './LocationSettings';
 import { notifications } from '../constants/app-constants';
-import {
-  Bell,
-  Settings,
-  User,
-  Menu,
-  Sun,
-  Moon
-} from 'lucide-react';
+import { Bell, Settings, User, Menu, Sun, Moon } from 'lucide-react';
 
 interface HeaderProps {
   showNotifications: boolean;
@@ -20,7 +13,12 @@ interface HeaderProps {
   toggleDarkMode: () => void;
 }
 
-export function Header({ showNotifications, setShowNotifications, darkMode, toggleDarkMode }: HeaderProps) {
+export function Header({
+  showNotifications,
+  setShowNotifications,
+  darkMode,
+  toggleDarkMode,
+}: HeaderProps) {
   return (
     <header className="border-b border-border bg-card">
       <div className="flex items-center justify-between px-6 h-16">
@@ -33,7 +31,9 @@ export function Header({ showNotifications, setShowNotifications, darkMode, togg
             <span className="font-semibold text-foreground">MooMetrics</span>
           </div>
           <div className="hidden md:block">
-            <p className="text-sm text-muted-foreground">Welcome back to your MooMetrics dashboard</p>
+            <p className="text-sm text-muted-foreground">
+              Welcome back to your MooMetrics dashboard
+            </p>
           </div>
         </div>
 
@@ -69,12 +69,20 @@ export function Header({ showNotifications, setShowNotifications, darkMode, togg
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   {notifications.map((notification) => (
-                    <div key={notification.id} className="p-3 border-b border-border last:border-b-0">
+                    <div
+                      key={notification.id}
+                      className="p-3 border-b border-border last:border-b-0"
+                    >
                       <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-2 ${notification.type === 'critical' ? 'bg-red-500' :
-                          notification.type === 'warning' ? 'bg-yellow-500' :
-                            'bg-blue-500'
-                          }`}></div>
+                        <div
+                          className={`w-2 h-2 rounded-full mt-2 ${
+                            notification.type === 'critical'
+                              ? 'bg-red-500'
+                              : notification.type === 'warning'
+                                ? 'bg-yellow-500'
+                                : 'bg-blue-500'
+                          }`}
+                        ></div>
                         <div className="flex-1">
                           <p className="text-sm">{notification.message}</p>
                           <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>

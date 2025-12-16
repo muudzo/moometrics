@@ -12,7 +12,7 @@ import { LocationProvider } from './context/LocationContext';
 import { Login } from './features/auth/components/Login';
 
 function AppContent() {
-  const [activeComponent, setActiveComponent] = useState("dashboard");
+  const [activeComponent, setActiveComponent] = useState('dashboard');
   const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const { isAuthenticated } = useAuth();
@@ -27,15 +27,15 @@ function AppContent() {
 
   const renderComponent = () => {
     switch (activeComponent) {
-      case "dashboard":
+      case 'dashboard':
         return <Dashboard onNavigate={setActiveComponent} />;
-      case "crops":
+      case 'crops':
         return <CropManagement />;
-      case "livestock":
+      case 'livestock':
         return <LivestockManagement />;
-      case "equipment":
+      case 'equipment':
         return <EquipmentTracking />;
-      case "finance":
+      case 'finance':
         return <FinanceTracking />;
       default:
         return <Dashboard onNavigate={setActiveComponent} />;
@@ -51,10 +51,7 @@ function AppContent() {
     <div className={`min-h-screen bg-background ${darkMode ? 'dark' : ''}`}>
       <SidebarProvider>
         <div className="flex h-screen">
-          <AppSidebar
-            activeComponent={activeComponent}
-            setActiveComponent={setActiveComponent}
-          />
+          <AppSidebar activeComponent={activeComponent} setActiveComponent={setActiveComponent} />
 
           <div className="flex-1 flex flex-col">
             <Header
@@ -64,9 +61,7 @@ function AppContent() {
               toggleDarkMode={toggleDarkMode}
             />
 
-            <main className="flex-1 overflow-auto bg-background">
-              {renderComponent()}
-            </main>
+            <main className="flex-1 overflow-auto bg-background">{renderComponent()}</main>
           </div>
         </div>
       </SidebarProvider>

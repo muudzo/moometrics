@@ -1,54 +1,50 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 interface User {
-    username: string;
-    name: string;
+  username: string;
+  name: string;
 }
 
 interface AuthContextType {
-    user: User | null;
-    login: (username: string) => Promise<void>;
-    logout: () => void;
-    isAuthenticated: boolean;
+  user: User | null;
+  login: (username: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Check for stored user on mount
+    const storedUser = localStorage.getItem('moometrics_user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-    useEffect(() => {
-        // Check for stored user on mount
-        const storedUser = localStorage.getItem('moometrics_user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
+  const login = async (username: string) => {
+    // Mock login - accept any username
+    // In a real app, you would validate credentials here
+    const newUser = { username, name: username };
+    setUser(newUser);
+    localStorage.setItem('moometrics_user', JSON.stringify(newUser));
+  };
 
-    const login = async (username: string) => {
-        // Mock login - accept any username
-        // In a real app, you would validate credentials here
-        const newUser = { username, name: username };
-        setUser(newUser);
-        localStorage.setItem('moometrics_user', JSON.stringify(newUser));
-    };
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('moometrics_user');
+  };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('moometrics_user');
-    };
-
-    return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

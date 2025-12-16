@@ -1,14 +1,33 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import {
   DollarSign,
   TrendingUp,
@@ -22,8 +41,8 @@ import {
   Eye,
   Edit,
   Receipt,
-  PiggyBank
-} from "lucide-react";
+  PiggyBank,
+} from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -39,14 +58,14 @@ interface Transaction {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "Paid":
-      return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
-    case "Pending":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800";
-    case "Overdue":
-      return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800";
+    case 'Paid':
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+    case 'Pending':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+    case 'Overdue':
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800";
+      return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800';
   }
 };
 
@@ -60,7 +79,7 @@ export function FinanceTracking() {
     amount: '',
     date: new Date().toISOString().split('T')[0],
     customer: '',
-    vendor: ''
+    vendor: '',
   });
 
   const hasTransactions = transactions.length > 0;
@@ -74,9 +93,9 @@ export function FinanceTracking() {
         category: newTransaction.category,
         description: newTransaction.description,
         amount: parseFloat(newTransaction.amount),
-        status: "Paid",
+        status: 'Paid',
         customer: newTransaction.type === 'income' ? newTransaction.customer : undefined,
-        vendor: newTransaction.type === 'expense' ? newTransaction.vendor : undefined
+        vendor: newTransaction.type === 'expense' ? newTransaction.vendor : undefined,
       };
 
       setTransactions([...transactions, transaction]);
@@ -88,7 +107,7 @@ export function FinanceTracking() {
         amount: '',
         date: new Date().toISOString().split('T')[0],
         customer: '',
-        vendor: ''
+        vendor: '',
       });
       setIsAddTransactionOpen(false);
     }
@@ -100,7 +119,9 @@ export function FinanceTracking() {
         <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
           <div>
             <h1 className="text-3xl font-semibold text-foreground">Finance & Sales</h1>
-            <p className="text-muted-foreground">Track farm finances, sales, expenses, and budgets.</p>
+            <p className="text-muted-foreground">
+              Track farm finances, sales, expenses, and budgets.
+            </p>
           </div>
         </div>
 
@@ -116,9 +137,12 @@ export function FinanceTracking() {
           </div>
 
           <div className="text-center space-y-2 max-w-md">
-            <h2 className="text-2xl font-semibold text-foreground">No financial transactions yet</h2>
+            <h2 className="text-2xl font-semibold text-foreground">
+              No financial transactions yet
+            </h2>
             <p className="text-muted-foreground">
-              Start tracking your farm's income and expenses to get insights into your financial performance.
+              Start tracking your farm's income and expenses to get insights into your financial
+              performance.
             </p>
           </div>
 
@@ -139,7 +163,18 @@ export function FinanceTracking() {
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="transaction-type">Transaction Type</Label>
-                  <Select value={newTransaction.type} onValueChange={(value: 'income' | 'expense') => setNewTransaction({ ...newTransaction, type: value, category: '', customer: '', vendor: '' })}>
+                  <Select
+                    value={newTransaction.type}
+                    onValueChange={(value: 'income' | 'expense') =>
+                      setNewTransaction({
+                        ...newTransaction,
+                        type: value,
+                        category: '',
+                        customer: '',
+                        vendor: '',
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select transaction type" />
                     </SelectTrigger>
@@ -152,7 +187,12 @@ export function FinanceTracking() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select value={newTransaction.category} onValueChange={(value) => setNewTransaction({ ...newTransaction, category: value })}>
+                  <Select
+                    value={newTransaction.category}
+                    onValueChange={(value) =>
+                      setNewTransaction({ ...newTransaction, category: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -187,7 +227,9 @@ export function FinanceTracking() {
                       id="customer"
                       placeholder="Customer name"
                       value={newTransaction.customer}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, customer: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, customer: e.target.value })
+                      }
                     />
                   </div>
                 )}
@@ -199,7 +241,9 @@ export function FinanceTracking() {
                       id="vendor"
                       placeholder="Vendor name"
                       value={newTransaction.vendor}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, vendor: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, vendor: e.target.value })
+                      }
                     />
                   </div>
                 )}
@@ -210,7 +254,9 @@ export function FinanceTracking() {
                     id="description"
                     placeholder="e.g., Corn sales to Co-op"
                     value={newTransaction.description}
-                    onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+                    onChange={(e) =>
+                      setNewTransaction({ ...newTransaction, description: e.target.value })
+                    }
                   />
                 </div>
 
@@ -223,7 +269,9 @@ export function FinanceTracking() {
                       step="0.01"
                       placeholder="0.00"
                       value={newTransaction.amount}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, amount: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -232,7 +280,9 @@ export function FinanceTracking() {
                       id="date"
                       type="date"
                       value={newTransaction.date}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, date: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -265,7 +315,9 @@ export function FinanceTracking() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Record Income</p>
-                    <p className="text-sm text-muted-foreground">Track sales from crops, livestock, and other farm products</p>
+                    <p className="text-sm text-muted-foreground">
+                      Track sales from crops, livestock, and other farm products
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -274,7 +326,9 @@ export function FinanceTracking() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Track Expenses</p>
-                    <p className="text-sm text-muted-foreground">Log feed, equipment, labor, and other operational costs</p>
+                    <p className="text-sm text-muted-foreground">
+                      Log feed, equipment, labor, and other operational costs
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -283,7 +337,9 @@ export function FinanceTracking() {
                   </div>
                   <div>
                     <p className="font-medium text-card-foreground">Monitor Profitability</p>
-                    <p className="text-sm text-muted-foreground">View financial reports and analyze your farm's performance</p>
+                    <p className="text-sm text-muted-foreground">
+                      View financial reports and analyze your farm's performance
+                    </p>
                   </div>
                 </div>
               </div>
@@ -294,34 +350,43 @@ export function FinanceTracking() {
     );
   }
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const totalIncome = transactions
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = transactions
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
   const netProfit = totalIncome - totalExpenses;
   const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
 
   // Sample chart data when there are transactions
   const monthlyData = [
-    { month: 'This Month', revenue: totalIncome, expenses: totalExpenses, profit: netProfit }
+    { month: 'This Month', revenue: totalIncome, expenses: totalExpenses, profit: netProfit },
   ];
 
   const expenseCategories = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((acc, t) => {
-      const existing = acc.find(item => item.category === t.category);
-      if (existing) {
-        existing.amount += t.amount;
-      } else {
-        acc.push({ category: t.category, amount: t.amount, color: '#4a5c2a' });
-      }
-      return acc;
-    }, [] as { category: string; amount: number; color: string }[]);
+    .filter((t) => t.type === 'expense')
+    .reduce(
+      (acc, t) => {
+        const existing = acc.find((item) => item.category === t.category);
+        if (existing) {
+          existing.amount += t.amount;
+        } else {
+          acc.push({ category: t.category, amount: t.amount, color: '#4a5c2a' });
+        }
+        return acc;
+      },
+      [] as { category: string; amount: number; color: string }[]
+    );
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Finance & Sales</h1>
-          <p className="text-muted-foreground">Track farm finances, sales, expenses, and budgets.</p>
+          <p className="text-muted-foreground">
+            Track farm finances, sales, expenses, and budgets.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
@@ -345,7 +410,18 @@ export function FinanceTracking() {
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="transaction-type">Transaction Type</Label>
-                  <Select value={newTransaction.type} onValueChange={(value: 'income' | 'expense') => setNewTransaction({ ...newTransaction, type: value, category: '', customer: '', vendor: '' })}>
+                  <Select
+                    value={newTransaction.type}
+                    onValueChange={(value: 'income' | 'expense') =>
+                      setNewTransaction({
+                        ...newTransaction,
+                        type: value,
+                        category: '',
+                        customer: '',
+                        vendor: '',
+                      })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select transaction type" />
                     </SelectTrigger>
@@ -358,7 +434,12 @@ export function FinanceTracking() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select value={newTransaction.category} onValueChange={(value) => setNewTransaction({ ...newTransaction, category: value })}>
+                  <Select
+                    value={newTransaction.category}
+                    onValueChange={(value) =>
+                      setNewTransaction({ ...newTransaction, category: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -393,7 +474,9 @@ export function FinanceTracking() {
                       id="customer"
                       placeholder="Customer name"
                       value={newTransaction.customer}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, customer: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, customer: e.target.value })
+                      }
                     />
                   </div>
                 )}
@@ -405,7 +488,9 @@ export function FinanceTracking() {
                       id="vendor"
                       placeholder="Vendor name"
                       value={newTransaction.vendor}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, vendor: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, vendor: e.target.value })
+                      }
                     />
                   </div>
                 )}
@@ -416,7 +501,9 @@ export function FinanceTracking() {
                     id="description"
                     placeholder="e.g., Corn sales to Co-op"
                     value={newTransaction.description}
-                    onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+                    onChange={(e) =>
+                      setNewTransaction({ ...newTransaction, description: e.target.value })
+                    }
                   />
                 </div>
 
@@ -429,7 +516,9 @@ export function FinanceTracking() {
                       step="0.01"
                       placeholder="0.00"
                       value={newTransaction.amount}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, amount: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -438,7 +527,9 @@ export function FinanceTracking() {
                       id="date"
                       type="date"
                       value={newTransaction.date}
-                      onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
+                      onChange={(e) =>
+                        setNewTransaction({ ...newTransaction, date: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -475,7 +566,7 @@ export function FinanceTracking() {
               <CardContent>
                 <div className="text-2xl font-bold">${totalIncome.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {transactions.filter(t => t.type === 'income').length} sales recorded
+                  {transactions.filter((t) => t.type === 'income').length} sales recorded
                 </p>
               </CardContent>
             </Card>
@@ -488,7 +579,7 @@ export function FinanceTracking() {
               <CardContent>
                 <div className="text-2xl font-bold">${totalExpenses.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {transactions.filter(t => t.type === 'expense').length} expenses recorded
+                  {transactions.filter((t) => t.type === 'expense').length} expenses recorded
                 </p>
               </CardContent>
             </Card>
@@ -499,12 +590,20 @@ export function FinanceTracking() {
                 <TrendingUp className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div
+                  className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                >
                   ${netProfit.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className={`flex items-center gap-1 ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {netProfit >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  <span
+                    className={`flex items-center gap-1 ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  >
+                    {netProfit >= 0 ? (
+                      <TrendingUp className="w-3 h-3" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3" />
+                    )}
                     {Math.abs(profitMargin).toFixed(1)}% profit margin
                   </span>
                 </p>
@@ -542,7 +641,7 @@ export function FinanceTracking() {
                           backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px',
-                          color: 'hsl(var(--card-foreground))'
+                          color: 'hsl(var(--card-foreground))',
                         }}
                       />
                       <Bar dataKey="revenue" fill="var(--color-chart-1)" name="Revenue" />
@@ -566,7 +665,9 @@ export function FinanceTracking() {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ category, amount }) => `${category}: $${amount.toLocaleString()}`}
+                          label={({ category, amount }) =>
+                            `${category}: $${amount.toLocaleString()}`
+                          }
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="amount"
@@ -581,7 +682,7 @@ export function FinanceTracking() {
                             backgroundColor: 'hsl(var(--card))',
                             border: '1px solid hsl(var(--border))',
                             borderRadius: '8px',
-                            color: 'hsl(var(--card-foreground))'
+                            color: 'hsl(var(--card-foreground))',
                           }}
                         />
                       </PieChart>
@@ -621,8 +722,13 @@ export function FinanceTracking() {
                       </TableCell>
                       <TableCell>{transaction.category}</TableCell>
                       <TableCell className="font-medium">{transaction.description}</TableCell>
-                      <TableCell className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                      <TableCell
+                        className={
+                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        }
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}$
+                        {transaction.amount.toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getStatusColor(transaction.status)}>
@@ -657,7 +763,7 @@ export function FinanceTracking() {
               <CardContent>
                 <div className="text-2xl font-bold">${totalIncome.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {transactions.filter(t => t.type === 'income').length} sales transactions
+                  {transactions.filter((t) => t.type === 'income').length} sales transactions
                 </p>
               </CardContent>
             </Card>
@@ -669,8 +775,11 @@ export function FinanceTracking() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${transactions.filter(t => t.type === 'income').length > 0
-                    ? Math.round(totalIncome / transactions.filter(t => t.type === 'income').length).toLocaleString()
+                  $
+                  {transactions.filter((t) => t.type === 'income').length > 0
+                    ? Math.round(
+                        totalIncome / transactions.filter((t) => t.type === 'income').length
+                      ).toLocaleString()
                     : '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">Per transaction</p>
@@ -684,7 +793,10 @@ export function FinanceTracking() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {new Set(transactions.filter(t => t.type === 'income').map(t => t.category)).size}
+                  {
+                    new Set(transactions.filter((t) => t.type === 'income').map((t) => t.category))
+                      .size
+                  }
                 </div>
                 <p className="text-xs text-muted-foreground">Different income sources</p>
               </CardContent>
@@ -710,32 +822,34 @@ export function FinanceTracking() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.filter(t => t.type === 'income').map((sale) => (
-                    <TableRow key={sale.id}>
-                      <TableCell>{sale.date}</TableCell>
-                      <TableCell className="font-medium">{sale.customer || 'N/A'}</TableCell>
-                      <TableCell>{sale.category}</TableCell>
-                      <TableCell>{sale.description}</TableCell>
-                      <TableCell className="text-green-600 font-medium">
-                        +${sale.amount.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getStatusColor(sale.status)}>
-                          {sale.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {transactions
+                    .filter((t) => t.type === 'income')
+                    .map((sale) => (
+                      <TableRow key={sale.id}>
+                        <TableCell>{sale.date}</TableCell>
+                        <TableCell className="font-medium">{sale.customer || 'N/A'}</TableCell>
+                        <TableCell>{sale.category}</TableCell>
+                        <TableCell>{sale.description}</TableCell>
+                        <TableCell className="text-green-600 font-medium">
+                          +${sale.amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getStatusColor(sale.status)}>
+                            {sale.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -752,7 +866,7 @@ export function FinanceTracking() {
               <CardContent>
                 <div className="text-2xl font-bold">${totalExpenses.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {transactions.filter(t => t.type === 'expense').length} expense records
+                  {transactions.filter((t) => t.type === 'expense').length} expense records
                 </p>
               </CardContent>
             </Card>
@@ -764,8 +878,11 @@ export function FinanceTracking() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${transactions.filter(t => t.type === 'expense').length > 0
-                    ? Math.round(totalExpenses / transactions.filter(t => t.type === 'expense').length).toLocaleString()
+                  $
+                  {transactions.filter((t) => t.type === 'expense').length > 0
+                    ? Math.round(
+                        totalExpenses / transactions.filter((t) => t.type === 'expense').length
+                      ).toLocaleString()
                     : '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">Per transaction</p>
@@ -779,7 +896,10 @@ export function FinanceTracking() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {new Set(transactions.filter(t => t.type === 'expense').map(t => t.category)).size}
+                  {
+                    new Set(transactions.filter((t) => t.type === 'expense').map((t) => t.category))
+                      .size
+                  }
                 </div>
                 <p className="text-xs text-muted-foreground">Different expense types</p>
               </CardContent>
@@ -805,32 +925,34 @@ export function FinanceTracking() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.filter(t => t.type === 'expense').map((expense) => (
-                    <TableRow key={expense.id}>
-                      <TableCell>{expense.date}</TableCell>
-                      <TableCell className="font-medium">{expense.vendor || 'N/A'}</TableCell>
-                      <TableCell>{expense.category}</TableCell>
-                      <TableCell>{expense.description}</TableCell>
-                      <TableCell className="text-red-600 font-medium">
-                        -${expense.amount.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getStatusColor(expense.status)}>
-                          {expense.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {transactions
+                    .filter((t) => t.type === 'expense')
+                    .map((expense) => (
+                      <TableRow key={expense.id}>
+                        <TableCell>{expense.date}</TableCell>
+                        <TableCell className="font-medium">{expense.vendor || 'N/A'}</TableCell>
+                        <TableCell>{expense.category}</TableCell>
+                        <TableCell>{expense.description}</TableCell>
+                        <TableCell className="text-red-600 font-medium">
+                          -${expense.amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={getStatusColor(expense.status)}>
+                            {expense.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </CardContent>

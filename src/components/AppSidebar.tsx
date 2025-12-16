@@ -1,11 +1,16 @@
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from './ui/sidebar';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from './ui/sidebar';
 import { navigationItems } from '../constants/app-constants';
 import { MooMetricsLogo } from './MooMetricsLogo';
-import { 
-  ArrowLeft,
-  Settings,
-  User
-} from 'lucide-react';
+import { ArrowLeft, Settings, User } from 'lucide-react';
 
 interface AppSidebarProps {
   activeComponent: string;
@@ -22,7 +27,7 @@ export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarPr
       <SidebarContent>
         {/* Back Button / Logo */}
         <div className="p-6 border-b border-border">
-          <button 
+          <button
             onClick={handleBackToDashboard}
             className="flex items-center gap-3 w-full hover:bg-accent rounded-lg p-2 -m-2 transition-colors duration-200 group"
           >
@@ -30,7 +35,9 @@ export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarPr
               <MooMetricsLogo size={28} className="text-primary-foreground" />
             </div>
             <div className="text-left">
-              <h2 className="font-semibold text-foreground group-hover:text-accent-foreground">MooMetrics</h2>
+              <h2 className="font-semibold text-foreground group-hover:text-accent-foreground">
+                MooMetrics
+              </h2>
               <p className="text-xs text-muted-foreground">Back to Dashboard</p>
             </div>
           </button>
