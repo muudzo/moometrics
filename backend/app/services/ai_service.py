@@ -32,7 +32,8 @@ async def get_planting_prediction(request: PredictionRequest) -> PredictionRespo
 
         # Create prompt for OpenAI
         prompt = (
-            f"As an agricultural expert, provide planting and harvest recommendations for:\n"
+            "As an agricultural expert, provide planting and harvest "
+            "recommendations for:\n"
             f"- Crop: {request.crop_type}\n"
             f"- Location: Latitude {request.latitude}, "
             f"Longitude {request.longitude}\n"
