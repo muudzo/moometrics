@@ -2,9 +2,9 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { SidebarTrigger } from './ui/sidebar';
 import { MooMetricsLogo } from './MooMetricsLogo';
-import { LocationSettings } from './LocationSettings';
+import { LocationSettings } from '@/features/settings/components/LocationSettings';
 import { notifications } from '../constants/app-constants';
-import { Bell, Settings, User, Menu, Sun, Moon } from 'lucide-react';
+import { Bell, User, Menu, Sun, Moon } from 'lucide-react';
 
 interface HeaderProps {
   showNotifications: boolean;
@@ -75,13 +75,12 @@ export function Header({
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className={`w-2 h-2 rounded-full mt-2 ${
-                            notification.type === 'critical'
-                              ? 'bg-red-500'
-                              : notification.type === 'warning'
-                                ? 'bg-yellow-500'
-                                : 'bg-blue-500'
-                          }`}
+                          className={`w-2 h-2 rounded-full mt-2 ${notification.type === 'critical'
+                            ? 'bg-red-500'
+                            : notification.type === 'warning'
+                              ? 'bg-yellow-500'
+                              : 'bg-blue-500'
+                            }`}
                         ></div>
                         <div className="flex-1">
                           <p className="text-sm">{notification.message}</p>

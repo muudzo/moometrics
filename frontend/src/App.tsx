@@ -3,10 +3,10 @@ import { SidebarProvider } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Header } from './components/Header';
 import { Dashboard } from './features/dashboard/components/Dashboard';
-import { CropManagement } from './components/CropManagement';
-import { LivestockManagement } from './components/LivestockManagement';
-import { EquipmentTracking } from './components/EquipmentTracking';
-import { FinanceTracking } from './components/FinanceTracking';
+import { CropManagement } from '@/features/crops/components/CropManagement';
+import { LivestockManagement } from '@/features/livestock/components/LivestockManagement';
+import { EquipmentTracking } from '@/features/equipment/components/EquipmentTracking';
+import { FinanceTracking } from '@/features/finance/components/FinanceTracking';
 import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
 import { LocationProvider } from './context/LocationContext';
 import { Login } from './features/auth/components/Login';
@@ -21,9 +21,7 @@ function AppContent() {
     return <Login />;
   }
 
-  const handleNavigate = (section: string) => {
-    setActiveComponent(section);
-  };
+
 
   const renderComponent = () => {
     switch (activeComponent) {
