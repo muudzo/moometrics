@@ -2,17 +2,14 @@ import { useState } from 'react';
 import { SidebarProvider } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Header } from './components/Header';
-import { Dashboard } from './features/dashboard/components/Dashboard';
-import { CropManagement } from '@/features/crops/components/CropManagement';
-import { LivestockManagement } from '@/features/livestock/components/LivestockManagement';
-import { EquipmentTracking } from '@/features/equipment/components/EquipmentTracking';
-import { FinanceTracking } from '@/features/finance/components/FinanceTracking';
 import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
 import { LocationProvider } from './context/LocationContext';
 import { Login } from './features/auth/components/Login';
+import { renderSection } from './app/section-registry';
+import type { AppSection } from './types/navigation';
 
 function AppContent() {
-  const [activeComponent, setActiveComponent] = useState('dashboard');
+  const [activeComponent, setActiveComponent] = useState<AppSection>('dashboard');
   const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const { isAuthenticated } = useAuth();
@@ -20,25 +17,6 @@ function AppContent() {
   if (!isAuthenticated) {
     return <Login />;
   }
-
-
-
-  const renderComponent = () => {
-    switch (activeComponent) {
-      case 'dashboard':
-        return <Dashboard onNavigate={setActiveComponent} />;
-      case 'crops':
-        return <CropManagement />;
-      case 'livestock':
-        return <LivestockManagement />;
-      case 'equipment':
-        return <EquipmentTracking />;
-      case 'finance':
-        return <FinanceTracking />;
-      default:
-        return <Dashboard onNavigate={setActiveComponent} />;
-    }
-  };
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -59,7 +37,9 @@ function AppContent() {
               toggleDarkMode={toggleDarkMode}
             />
 
-            <main className="flex-1 overflow-auto bg-background">{renderComponent()}</main>
+            <main className="flex-1 overflow-auto bg-background">
+              {renderSection(activeComponent, { onNavigate: setActiveComponent })}
+            </main>
           </div>
         </div>
       </SidebarProvider>

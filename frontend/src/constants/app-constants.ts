@@ -1,6 +1,13 @@
-import { LayoutDashboard, Wheat, PawPrint, Tractor, DollarSign } from 'lucide-react';
+import { DollarSign, LayoutDashboard, PawPrint, Tractor, Wheat, type LucideIcon } from 'lucide-react';
+import type { AppSection } from '@/types/navigation';
 
-export const navigationItems = [
+interface NavigationItem {
+  title: string;
+  icon: LucideIcon;
+  component: AppSection;
+}
+
+export const navigationItems: NavigationItem[] = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
