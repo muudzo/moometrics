@@ -25,6 +25,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { WeatherCard } from '@/features/weather/components/WeatherCard';
+import type { AppSection } from '@/types/navigation';
 
 const sampleRevenueData = [{ month: 'This Month', revenue: 0, expenses: 1200 }];
 
@@ -41,7 +42,7 @@ interface FarmData {
 
 interface DashboardProps {
   farmData?: FarmData;
-  onNavigate?: (section: string) => void;
+  onNavigate?: (section: AppSection) => void;
 }
 
 export function Dashboard({ farmData, onNavigate }: DashboardProps) {
