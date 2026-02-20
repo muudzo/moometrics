@@ -3,14 +3,12 @@ import { SidebarProvider } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Header } from './components/Header';
 import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
-import { LocationProvider } from './context/LocationContext';
 import { Login } from './features/auth/components/Login';
 import { renderSection } from './app/section-registry';
 import type { AppSection } from './types/navigation';
 
 function AppContent() {
   const [activeComponent, setActiveComponent] = useState<AppSection>('dashboard');
-  const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -29,13 +27,8 @@ function AppContent() {
         <div className="flex h-screen">
           <AppSidebar activeComponent={activeComponent} setActiveComponent={setActiveComponent} />
 
-          <div className="flex-1 flex flex-col">
-            <Header
-              showNotifications={showNotifications}
-              setShowNotifications={setShowNotifications}
-              darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
-            />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
             <main className="flex-1 overflow-auto bg-background">
               {renderSection(activeComponent, { onNavigate: setActiveComponent })}
@@ -50,9 +43,7 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <LocationProvider>
-        <AppContent />
-      </LocationProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

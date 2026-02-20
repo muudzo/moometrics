@@ -10,8 +10,7 @@ import {
 } from './ui/sidebar';
 import { navigationItems } from '../constants/app-constants';
 import { MooMetricsLogo } from './MooMetricsLogo';
-import { Settings, User } from 'lucide-react';
-
+import { useAuth } from '@/features/auth/context/AuthContext';
 import type { AppSection } from '@/types/navigation';
 
 interface AppSidebarProps {
@@ -20,17 +19,19 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarProps) {
-  const handleBackToDashboard = () => {
-    setActiveComponent('dashboard');
-  };
+  const { user } = useAuth();
+
+  const visibleItems = navigationItems.filter(
+    (item) => user?.role && item.roles.includes(user.role),
+  );
 
   return (
     <Sidebar className="border-r border-border">
       <SidebarContent>
-        {/* Back Button / Logo */}
+        {/* Logo */}
         <div className="p-6 border-b border-border">
           <button
-            onClick={handleBackToDashboard}
+            onClick={() => setActiveComponent('dashboard')}
             className="flex items-center gap-3 w-full hover:bg-accent rounded-lg p-2 -m-2 transition-colors duration-200 group"
           >
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center group-hover:bg-primary/90 transition-colors duration-200">
@@ -40,17 +41,17 @@ export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarPr
               <h2 className="font-semibold text-foreground group-hover:text-accent-foreground">
                 MooMetrics
               </h2>
-              <p className="text-xs text-muted-foreground">Back to Dashboard</p>
+              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
             </div>
           </button>
         </div>
 
         {/* Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel>Farm Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Farm Records</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => {
+              {visibleItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.component}>
@@ -64,26 +65,6 @@ export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarPr
                   </SidebarMenuItem>
                 );
               })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Settings */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <User className="w-4 h-4" />
-                  <span>Profile</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
