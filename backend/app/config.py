@@ -4,7 +4,7 @@ Configuration management for the backend API.
 
 from functools import lru_cache
 from typing import Literal
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -16,59 +16,40 @@ class Settings(BaseSettings):
         default="development", description="Application environment"
     )
 
-    # API Keys
-    openweather_api_key: str = Field(
-        default="YOUR_API_KEY", description="OpenWeatherMap API key"
-    )
-    openai_api_key: str = Field(
-        default="", description="OpenAI API key for crop predictions"
-    )
-
     # Server
     backend_port: int = Field(default=8000, description="Backend server port")
     frontend_url: str = Field(
         default="http://localhost:3000", description="Frontend URL for CORS"
     )
 
-    # API URLs
-    openweather_base_url: str = Field(
-        default="https://api.openweathermap.org/data/2.5",
-        description="OpenWeatherMap API base URL",
+    # JWT Auth
+    jwt_secret: str = Field(
+        default="change-me-in-production", description="Secret key for JWT signing"
+    )
+    jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
+    jwt_expire_minutes: int = Field(
+        default=480, description="JWT expiry in minutes (8 hours)"
     )
 
-    # Cache settings
-    cache_ttl_seconds: int = Field(
-        default=300, description="Cache TTL in seconds (5 minutes default)"
+    # Database
+    database_url: str = Field(
+        default="sqlite:///./moometrics.db", description="SQLAlchemy database URL"
+    )
+
+    # File uploads
+    upload_dir: str = Field(
+        default="uploads/deaths", description="Directory for death report images"
     )
 
     # Logging
     log_level: str = Field(default="INFO", description="Logging level")
 
-    @field_validator("openweather_api_key")
-    @classmethod
-    def validate_weather_api_key(cls, v: str) -> str:
-        """Validate OpenWeatherMap API key format."""
-        if v and v != "YOUR_API_KEY" and len(v) < 10:
-            raise ValueError("OpenWeatherMap API key seems invalid (too short)")
-        return v
-
-    @field_validator("log_level")
-    @classmethod
-    def validate_log_level(cls, v: str) -> str:
-        """Validate log level."""
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        if v.upper() not in valid_levels:
-            raise ValueError(f"Invalid log level. Must be one of: {valid_levels}")
-        return v.upper()
-
     @property
     def is_production(self) -> bool:
-        """Check if running in production environment."""
         return self.environment == "production"
 
     @property
     def is_development(self) -> bool:
-        """Check if running in development environment."""
         return self.environment == "development"
 
     class Config:
@@ -79,7 +60,6 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """
-    Get settings instance (singleton pattern using lru_cache).
-    Settings are loaded once and cached for the application lifetime.
+    Get settings instance (singleton via lru_cache).
     """
     return Settings()

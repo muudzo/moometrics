@@ -1,19 +1,22 @@
 import React, { createContext, useContext, useState } from 'react';
 import { z } from 'zod';
+import { apiFetch, ApiError } from '@/services/api';
 
-// Define Zod schema for User
 const UserSchema = z.object({
+  id: z.number(),
   username: z.string().min(1),
-  name: z.string(),
+  role: z.enum(['manager', 'employee']),
+  token: z.string().min(1),
 });
 
-type User = z.infer<typeof UserSchema>;
+export type User = z.infer<typeof UserSchema>;
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -23,56 +26,64 @@ const STORAGE_KEY = 'moometrics_user';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [user, setUser] = useState<User | null>(() => {
     try {
-      const storedUser = localStorage.getItem(STORAGE_KEY);
-      if (!storedUser) return null;
-
-      const parsed = JSON.parse(storedUser);
-      const result = UserSchema.safeParse(parsed);
-
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return null;
+      const result = UserSchema.safeParse(JSON.parse(stored));
       if (!result.success) {
-        console.warn('Corrupted user data found in localStorage, clearing.', result.error);
         localStorage.removeItem(STORAGE_KEY);
         return null;
       }
       return result.data;
-    } catch (e) {
-      console.error('Failed to parse user from localStorage', e);
+    } catch {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
   });
 
-  const login = async (username: string) => {
+  const login = async (username: string, password: string) => {
     setError(null);
+    setIsLoading(true);
     try {
-      // Validate input
-      if (!username || username.trim() === '') {
-        throw new Error('Username cannot be empty');
-      }
+      const data = await apiFetch<{
+        access_token: string;
+        role: string;
+        user_id: number;
+        username: string;
+      }>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const newUser: User = {
+        id: data.user_id,
+        username: data.username,
+        role: data.role as 'manager' | 'employee',
+        token: data.access_token,
+      };
 
-      const newUser = { username, name: username };
-
-      // Validate the user object before setting state
       const result = UserSchema.safeParse(newUser);
       if (!result.success) {
-        throw new Error('Invalid user data generated');
+        throw new Error('Unexpected response from server');
       }
 
       setUser(result.data);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      setError(errorMessage);
-      console.error('Login error:', err);
-      // Ensure state is consistent on failure
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Login failed';
+      setError(message);
       setUser(null);
       localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -83,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, error }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading, error }}>
       {children}
     </AuthContext.Provider>
   );
