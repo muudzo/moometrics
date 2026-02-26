@@ -10,11 +10,13 @@ import {
 } from './ui/sidebar';
 import { navigationItems } from '../constants/app-constants';
 import { MooMetricsLogo } from './MooMetricsLogo';
-import { ArrowLeft, Settings, User } from 'lucide-react';
+import { Settings, User } from 'lucide-react';
+
+import type { AppSection } from '@/types/navigation';
 
 interface AppSidebarProps {
-  activeComponent: string;
-  setActiveComponent: (component: string) => void;
+  activeComponent: AppSection;
+  setActiveComponent: (component: AppSection) => void;
 }
 
 export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarProps) {
