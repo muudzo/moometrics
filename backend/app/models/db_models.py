@@ -26,7 +26,9 @@ class User(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    username: Mapped[str] = mapped_column(
+        String(32), unique=True, index=True, nullable=False
+    )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -51,7 +53,9 @@ class Animal(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     animal_type: Mapped[str] = mapped_column(String(20), nullable=False)
-    tag_number: Mapped[Optional[str]] = mapped_column(String(50), unique=True, nullable=True)
+    tag_number: Mapped[Optional[str]] = mapped_column(
+        String(50), unique=True, nullable=True
+    )
     breed: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     date_of_birth: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     status: Mapped[str] = mapped_column(String(10), default="alive", nullable=False)

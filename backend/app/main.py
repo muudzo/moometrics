@@ -30,7 +30,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Security headers
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):  # type: ignore[override]
         response: Response = await call_next(request)

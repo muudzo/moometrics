@@ -7,7 +7,13 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.db_models import User
-from app.models.schemas import LoginRequest, SignupRequest, TokenResponse, UserCreate, UserResponse
+from app.models.schemas import (
+    LoginRequest,
+    SignupRequest,
+    TokenResponse,
+    UserCreate,
+    UserResponse,
+)
 from app.services.auth_service import (
     create_access_token,
     hash_password,
@@ -36,7 +42,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
 def signup(request: SignupRequest, db: Session = Depends(get_db)):
     """Public self-registration. Always creates an employee account."""
     existing = db.query(User).filter(User.username == request.username).first()
@@ -62,7 +70,9 @@ def signup(request: SignupRequest, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 def register(
     request: UserCreate,
     db: Session = Depends(get_db),

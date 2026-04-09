@@ -48,7 +48,9 @@ async def process_death_image(file: UploadFile, db: Session) -> tuple[str, str]:
     image_hash = hashlib.sha256(contents).hexdigest()
     logger.info(f"Processing image with hash: {image_hash[:16]}...")
 
-    existing = db.query(DeathRecord).filter(DeathRecord.image_hash == image_hash).first()
+    existing = (
+        db.query(DeathRecord).filter(DeathRecord.image_hash == image_hash).first()
+    )
     if existing:
         logger.warning(f"Duplicate image hash detected: {image_hash[:16]}")
         raise HTTPException(

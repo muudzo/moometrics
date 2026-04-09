@@ -33,6 +33,7 @@ def _validate_password(v: str) -> str:
 # Auth
 # ---------------------------------------------------------------------------
 
+
 class LoginRequest(BaseModel):
     username: str = Field(min_length=3, max_length=32)
     password: str = Field(min_length=1)
@@ -40,6 +41,7 @@ class LoginRequest(BaseModel):
 
 class SignupRequest(BaseModel):
     """Public self-registration — always creates an employee account."""
+
     username: str = Field(min_length=3, max_length=32)
     password: str = Field(min_length=8, max_length=128)
 
@@ -91,6 +93,7 @@ class TokenResponse(BaseModel):
 # Animals
 # ---------------------------------------------------------------------------
 
+
 class AnimalCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     animal_type: Literal["cattle", "sheep", "goat", "pig", "horse", "chicken", "other"]
@@ -102,7 +105,17 @@ class AnimalCreate(BaseModel):
 
 class AnimalUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    animal_type: Optional[Literal["cattle", "sheep", "goat", "pig", "horse", "chicken", "other"]] = None
+    animal_type: Optional[
+        Literal[
+            "cattle",
+            "sheep",
+            "goat",
+            "pig",
+            "horse",
+            "chicken",
+            "other",
+        ]
+    ] = None
     tag_number: Optional[str] = Field(default=None, max_length=50)
     breed: Optional[str] = Field(default=None, max_length=100)
     date_of_birth: Optional[date] = None
@@ -130,6 +143,7 @@ class AnimalResponse(BaseModel):
 # Death Records
 # ---------------------------------------------------------------------------
 
+
 class DeathRecordResponse(BaseModel):
     id: int
     animal_id: int
@@ -146,6 +160,7 @@ class DeathRecordResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Dashboard
 # ---------------------------------------------------------------------------
+
 
 class RecentActivity(BaseModel):
     type: Literal["animal_added", "death_reported"]
