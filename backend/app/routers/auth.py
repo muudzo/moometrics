@@ -43,7 +43,7 @@ def signup(request: SignupRequest, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Username '{request.username}' is already taken",
+            detail="Username is already taken",
         )
     new_user = User(
         username=request.username,
@@ -73,7 +73,7 @@ def register(
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Username '{request.username}' is already taken",
+            detail="Username is already taken",
         )
     new_user = User(
         username=request.username,

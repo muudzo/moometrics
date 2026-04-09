@@ -1,0 +1,40 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#16a34a"/>
+
+  <!-- Cow head base -->
+  <path d="M256 90 C180 90, 140 140, 140 210 L140 290 C140 340, 165 365, 190 375 L190 390 C190 405, 200 415, 215 415 L297 415 C312 415, 322 405, 322 390 L322 375 C347 365, 372 340, 372 290 L372 210 C372 140, 332 90, 256 90 Z" fill="white"/>
+
+  <!-- Left ear -->
+  <ellipse cx="152" cy="160" rx="40" ry="70" fill="white" transform="rotate(-25 152 160)"/>
+  <!-- Right ear -->
+  <ellipse cx="360" cy="160" rx="40" ry="70" fill="white" transform="rotate(25 360 160)"/>
+  <!-- Inner left ear -->
+  <ellipse cx="152" cy="160" rx="20" ry="45" fill="#bbf7d0" transform="rotate(-25 152 160)"/>
+  <!-- Inner right ear -->
+  <ellipse cx="360" cy="160" rx="20" ry="45" fill="#bbf7d0" transform="rotate(25 360 160)"/>
+
+  <!-- Horns -->
+  <path d="M130 135 L105 85 L115 120 L130 135 Z" fill="#a3a3a3"/>
+  <path d="M382 135 L407 85 L397 120 L382 135 Z" fill="#a3a3a3"/>
+
+  <!-- Diamond pattern on forehead -->
+  <path d="M231 140 L256 115 L281 140 L256 165 Z" fill="#16a34a"/>
+  <circle cx="216" cy="175" r="10" fill="#16a34a"/>
+  <circle cx="296" cy="175" r="10" fill="#16a34a"/>
+
+  <!-- Eyes -->
+  <circle cx="205" cy="235" r="20" fill="#1a1a1a"/>
+  <circle cx="307" cy="235" r="20" fill="#1a1a1a"/>
+  <circle cx="210" cy="230" r="7" fill="white"/>
+  <circle cx="312" cy="230" r="7" fill="white"/>
+
+  <!-- Snout -->
+  <ellipse cx="256" cy="320" rx="75" ry="60" fill="#bbf7d0"/>
+  <!-- Nostrils -->
+  <ellipse cx="235" cy="320" rx="12" ry="15" fill="#16a34a"/>
+  <ellipse cx="277" cy="320" rx="12" ry="15" fill="#16a34a"/>
+
+  <!-- Mouth -->
+  <path d="M220 350 Q256 365, 292 350" stroke="#16a34a" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>
