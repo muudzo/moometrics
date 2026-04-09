@@ -36,7 +36,10 @@ def create_animal(
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Tag number '{body.tag_number}' is already assigned to another animal",
+                detail=(
+                    f"Tag number '{body.tag_number}'"
+                    " is already assigned to another animal"
+                ),
             )
     animal = Animal(
         name=body.name,
@@ -63,7 +66,9 @@ def get_animal(
     """Return a single animal record."""
     animal = db.query(Animal).filter(Animal.id == animal_id).first()
     if not animal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found"
+        )
     return animal
 
 
@@ -74,15 +79,23 @@ def update_animal(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Update an animal record. Both roles can update; only managers can force-set status."""
+    """Update an animal record.
+
+    Both roles can update; only managers can force-set status.
+    """
     animal = db.query(Animal).filter(Animal.id == animal_id).first()
     if not animal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found"
+        )
 
     if body.status == "dead" and current_user.role != "manager":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only managers can directly set status to 'dead'. Use the death report endpoint.",
+            detail=(
+                "Only managers can directly set status"
+                " to 'dead'. Use the death report endpoint."
+            ),
         )
 
     update_data = body.model_dump(exclude_unset=True)
@@ -104,6 +117,8 @@ def delete_animal(
     """Delete an animal record. Manager access required."""
     animal = db.query(Animal).filter(Animal.id == animal_id).first()
     if not animal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found"
+        )
     db.delete(animal)
     db.commit()

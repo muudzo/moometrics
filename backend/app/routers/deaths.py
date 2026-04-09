@@ -32,7 +32,9 @@ def list_deaths(
     return query.order_by(DeathRecord.created_at.desc()).all()
 
 
-@router.post("", response_model=DeathRecordResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=DeathRecordResponse, status_code=status.HTTP_201_CREATED
+)
 async def report_death(
     animal_id: int = Form(...),
     cause_of_death: str = Form(...),
@@ -46,12 +48,15 @@ async def report_death(
     Submit a death report for an animal.
 
     - The animal must currently be alive.
-    - A photo is required and must not have been used in a previous report (SHA-256 hash check).
+    - A photo is required and must not have been used
+      in a previous report (SHA-256 hash check).
     - On success the animal status is set to 'dead'.
     """
     animal = db.query(Animal).filter(Animal.id == animal_id).first()
     if not animal:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Animal not found"
+        )
 
     if animal.status != "alive":
         raise HTTPException(
@@ -59,7 +64,9 @@ async def report_death(
             detail=f"Animal '{animal.name}' is already recorded as dead",
         )
 
-    existing_record = db.query(DeathRecord).filter(DeathRecord.animal_id == animal_id).first()
+    existing_record = (
+        db.query(DeathRecord).filter(DeathRecord.animal_id == animal_id).first()
+    )
     if existing_record:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -97,7 +104,9 @@ def get_death(
     """Return a single death report. Employees can only view their own."""
     record = db.query(DeathRecord).filter(DeathRecord.id == record_id).first()
     if not record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Death record not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Death record not found"
+        )
 
     if current_user.role != "manager" and record.reported_by_user_id != current_user.id:
         raise HTTPException(

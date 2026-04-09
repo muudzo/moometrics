@@ -5,9 +5,13 @@ Main FastAPI application entry point.
 import logging
 import os
 
-from fastapi import FastAPI
+from alembic import command
+from alembic.config import Config as AlembicConfig
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.config import get_settings
 from app.database import Base, SessionLocal, engine
@@ -26,13 +30,34 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if settings.is_production:
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=63072000; includeSubDomains"
+            )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 # CORS
+origins = [settings.frontend_url]
+if settings.is_development:
+    origins.append("http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url, "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=3600,
 )
 
 # Routers
@@ -64,9 +89,20 @@ def _seed_default_manager() -> None:
         db.close()
 
 
+def _run_migrations() -> None:
+    """Apply any pending Alembic migrations."""
+    try:
+        alembic_cfg = AlembicConfig("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Database migrations applied successfully")
+    except Exception:
+        logger.warning("Alembic migrations failed, falling back to create_all")
+        Base.metadata.create_all(bind=engine)
+
+
 @app.on_event("startup")
 def startup() -> None:
-    Base.metadata.create_all(bind=engine)
+    _run_migrations()
     _seed_default_manager()
 
 

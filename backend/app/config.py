@@ -52,6 +52,17 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         return self.environment == "development"
 
+    def model_post_init(self, __context: object) -> None:
+        if self.is_production:
+            if self.jwt_secret == "change-me-in-production":
+                raise ValueError(
+                    "JWT_SECRET must be set to a strong value in production"
+                )
+            if self.database_url.startswith("sqlite"):
+                raise ValueError(
+                    "SQLite is not supported in production — use PostgreSQL"
+                )
+
     class Config:
         env_file = ".env"
         case_sensitive = False

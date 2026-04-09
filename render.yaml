@@ -1,0 +1,35 @@
+# Render Blueprint — deploy with `render blueprint apply`
+# Docs: https://docs.render.com/blueprint-spec
+
+services:
+  - type: web
+    name: moometrics-api
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: moometrics-db
+          property: connectionURI
+      - key: FRONTEND_URL
+        sync: false
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/uploads/deaths
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+databases:
+  - name: moometrics-db
+    plan: free
+    region: oregon
+    databaseName: moometrics
+    user: moometrics

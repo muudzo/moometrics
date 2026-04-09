@@ -2,8 +2,6 @@
 Dashboard router: aggregated farm statistics.
 """
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -30,14 +28,14 @@ def get_stats(
 
     type_breakdown: dict[str, int] = {}
     for animal in animals:
-        type_breakdown[animal.animal_type] = type_breakdown.get(animal.animal_type, 0) + 1
+        type_breakdown[animal.animal_type] = (
+            type_breakdown.get(animal.animal_type, 0) + 1
+        )
 
     # Build recent activity from last 5 animals added + last 5 death records
     activity: list[RecentActivity] = []
 
-    recent_animals = (
-        db.query(Animal).order_by(Animal.created_at.desc()).limit(5).all()
-    )
+    recent_animals = db.query(Animal).order_by(Animal.created_at.desc()).limit(5).all()
     for a in recent_animals:
         activity.append(
             RecentActivity(
