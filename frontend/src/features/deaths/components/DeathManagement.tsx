@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { apiFetch, ApiError, apiUrl } from '@/services/api';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -39,6 +39,7 @@ interface DeathRecord {
 export const DeathManagement: React.FC = () => {
   const { user } = useAuth();
   const isManager = user?.role === 'manager';
+  const online = useOnlineStatus();
 
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [deaths, setDeaths] = useState<DeathRecord[]>([]);
@@ -93,6 +94,14 @@ export const DeathManagement: React.FC = () => {
     e.preventDefault();
     if (!selectedAnimalId || !cause || !dateOfDeath || !imageFile) return;
 
+    if (!online) {
+      setSubmitSuccess(false);
+      setSubmitError(
+        "You're offline — this report was NOT saved. Your entry is kept; reconnect and submit again."
+      );
+      return;
+    }
+
     setSubmitLoading(true);
     setSubmitError(null);
     setSubmitSuccess(false);
@@ -105,10 +114,14 @@ export const DeathManagement: React.FC = () => {
       if (notes) formData.append('notes', notes);
       formData.append('file', imageFile);
 
-      await apiFetch<DeathRecord>('/api/deaths', {
-        method: 'POST',
-        body: formData,
-      }, user?.token);
+      await apiFetch<DeathRecord>(
+        '/api/deaths',
+        {
+          method: 'POST',
+          body: formData,
+        },
+        user?.token
+      );
 
       // Reset form
       setSelectedAnimalId('');
@@ -121,7 +134,11 @@ export const DeathManagement: React.FC = () => {
       setSubmitSuccess(true);
       await fetchData();
     } catch (e) {
-      setSubmitError(e instanceof ApiError ? e.message : 'Failed to submit death report');
+      setSubmitError(
+        e instanceof ApiError
+          ? e.message
+          : 'Failed to submit — this report was NOT saved. Please try again.'
+      );
     } finally {
       setSubmitLoading(false);
     }
@@ -200,14 +217,17 @@ export const DeathManagement: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {aliveAnimals.length === 0 ? (
-                        <SelectItem value="" disabled>No alive animals</SelectItem>
+                        <SelectItem value="" disabled>
+                          No alive animals
+                        </SelectItem>
                       ) : (
                         aliveAnimals.map((a) => (
                           <SelectItem key={a.id} value={String(a.id)}>
                             {a.name}
-                            {a.tag_number ? ` — ${a.tag_number}` : ''}
-                            {' '}
-                            <span className="capitalize text-muted-foreground">({a.animal_type})</span>
+                            {a.tag_number ? ` — ${a.tag_number}` : ''}{' '}
+                            <span className="capitalize text-muted-foreground">
+                              ({a.animal_type})
+                            </span>
                           </SelectItem>
                         ))
                       )}
@@ -276,20 +296,35 @@ export const DeathManagement: React.FC = () => {
                     className="hidden"
                     onChange={handleImageChange}
                   />
-                  {imageFile && (
-                    <p className="text-xs text-muted-foreground">{imageFile.name}</p>
-                  )}
+                  {imageFile && <p className="text-xs text-muted-foreground">{imageFile.name}</p>}
                 </div>
 
                 <Button
                   type="submit"
                   className="w-full"
                   variant="destructive"
-                  disabled={submitLoading || !selectedAnimalId || !cause || !dateOfDeath || !imageFile}
+                  disabled={
+                    submitLoading ||
+                    !online ||
+                    !selectedAnimalId ||
+                    !cause ||
+                    !dateOfDeath ||
+                    !imageFile
+                  }
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  {submitLoading ? 'Submitting...' : 'Submit Death Report'}
+                  {submitLoading
+                    ? 'Submitting...'
+                    : !online
+                      ? 'Offline — cannot submit'
+                      : 'Submit Death Report'}
                 </Button>
+                {!online && (
+                  <p className="text-xs text-amber-600 text-center">
+                    You&rsquo;re offline. Your entry is kept on this screen — submit once you
+                    reconnect.
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>
@@ -348,11 +383,7 @@ const DeathTable: React.FC<DeathTableProps> = ({ deaths, getAnimalName }) => {
               <td className="px-4 py-3">{d.cause_of_death}</td>
               <td className="px-4 py-3">{new Date(d.date_of_death).toLocaleDateString()}</td>
               <td className="px-4 py-3">
-                <a
-                  href={apiUrl(`/${d.image_path}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={apiUrl(`/${d.image_path}`)} target="_blank" rel="noopener noreferrer">
                   <img
                     src={apiUrl(`/${d.image_path}`)}
                     alt="death evidence"

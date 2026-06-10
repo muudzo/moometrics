@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { z } from 'zod';
-import { apiFetch, ApiError } from '@/services/api';
+import { apiFetch, ApiError, UNAUTHORIZED_EVENT } from '@/services/api';
 
 const UserSchema = z.object({
   id: z.number(),
@@ -44,6 +44,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
+  // A 401 from any API call (expired/invalid token) ends the session.
+  useEffect(() => {
+    const onUnauthorized = () => {
+      setUser(null);
+      localStorage.removeItem(STORAGE_KEY);
+      setError('Your session has expired. Please sign in again.');
+    };
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, []);
+
   const login = async (username: string, password: string) => {
     setError(null);
     setIsLoading(true);
@@ -74,11 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
     } catch (err) {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : 'Login failed';
+        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Login failed';
       setError(message);
       setUser(null);
       localStorage.removeItem(STORAGE_KEY);
@@ -94,7 +101,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading, error }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, isAuthenticated: !!user, isLoading, error }}
+    >
       {children}
     </AuthContext.Provider>
   );

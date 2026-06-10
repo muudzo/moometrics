@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { apiFetch, ApiError } from '@/services/api';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,6 +52,7 @@ const emptyForm = {
 
 export const AnimalManagement: React.FC = () => {
   const { user } = useAuth();
+  const online = useOnlineStatus();
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,28 +91,40 @@ export const AnimalManagement: React.FC = () => {
   const filtered = animals.filter((a) => {
     if (filterStatus !== 'all' && a.status !== filterStatus) return false;
     if (filterType !== 'all' && a.animal_type !== filterType) return false;
-    if (search && !a.name.toLowerCase().includes(search.toLowerCase()) &&
-        !(a.tag_number ?? '').toLowerCase().includes(search.toLowerCase())) return false;
+    if (
+      search &&
+      !a.name.toLowerCase().includes(search.toLowerCase()) &&
+      !(a.tag_number ?? '').toLowerCase().includes(search.toLowerCase())
+    )
+      return false;
     return true;
   });
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.name || !addForm.animal_type) return;
+    if (!online) {
+      setAddError("You're offline — this animal was NOT saved. Reconnect and try again.");
+      return;
+    }
     setAddLoading(true);
     setAddError(null);
     try {
-      await apiFetch<Animal>('/api/animals', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: addForm.name,
-          animal_type: addForm.animal_type,
-          tag_number: addForm.tag_number || null,
-          breed: addForm.breed || null,
-          date_of_birth: addForm.date_of_birth || null,
-          notes: addForm.notes || null,
-        }),
-      }, user?.token);
+      await apiFetch<Animal>(
+        '/api/animals',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            name: addForm.name,
+            animal_type: addForm.animal_type,
+            tag_number: addForm.tag_number || null,
+            breed: addForm.breed || null,
+            date_of_birth: addForm.date_of_birth || null,
+            notes: addForm.notes || null,
+          }),
+        },
+        user?.token
+      );
       setAddForm({ ...emptyForm });
       setAddOpen(false);
       await fetchAnimals();
@@ -138,20 +152,28 @@ export const AnimalManagement: React.FC = () => {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editAnimal) return;
+    if (!online) {
+      setEditError("You're offline — changes were NOT saved. Reconnect and try again.");
+      return;
+    }
     setEditLoading(true);
     setEditError(null);
     try {
-      await apiFetch<Animal>(`/api/animals/${editAnimal.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          name: editForm.name || undefined,
-          animal_type: editForm.animal_type || undefined,
-          tag_number: editForm.tag_number || null,
-          breed: editForm.breed || null,
-          date_of_birth: editForm.date_of_birth || null,
-          notes: editForm.notes || null,
-        }),
-      }, user?.token);
+      await apiFetch<Animal>(
+        `/api/animals/${editAnimal.id}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: editForm.name || undefined,
+            animal_type: editForm.animal_type || undefined,
+            tag_number: editForm.tag_number || null,
+            breed: editForm.breed || null,
+            date_of_birth: editForm.date_of_birth || null,
+            notes: editForm.notes || null,
+          }),
+        },
+        user?.token
+      );
       setEditOpen(false);
       await fetchAnimals();
     } catch (e) {
@@ -162,6 +184,10 @@ export const AnimalManagement: React.FC = () => {
   };
 
   const handleDelete = async (animal: Animal) => {
+    if (!online) {
+      alert("You're offline — cannot delete right now. Reconnect and try again.");
+      return;
+    }
     if (!confirm(`Delete ${animal.name}? This cannot be undone.`)) return;
     try {
       await apiFetch(`/api/animals/${animal.id}`, { method: 'DELETE' }, user?.token);
@@ -193,7 +219,7 @@ export const AnimalManagement: React.FC = () => {
             {animals.length} total &mdash; {alive} alive, {dead} dead
           </p>
         </div>
-        <Button onClick={() => setAddOpen(true)}>
+        <Button onClick={() => setAddOpen(true)} disabled={!online}>
           <Plus className="h-4 w-4 mr-2" /> Add Animal
         </Button>
       </div>
@@ -219,7 +245,10 @@ export const AnimalManagement: React.FC = () => {
               onChange={(e) => setSearch(e.target.value)}
               className="max-w-xs"
             />
-            <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as typeof filterStatus)}>
+            <Select
+              value={filterStatus}
+              onValueChange={(v) => setFilterStatus(v as typeof filterStatus)}
+            >
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -236,7 +265,9 @@ export const AnimalManagement: React.FC = () => {
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 {ANIMAL_TYPES.map((t) => (
-                  <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
+                  <SelectItem key={t} value={t} className="capitalize">
+                    {t}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -271,9 +302,7 @@ export const AnimalManagement: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 font-medium">{animal.name}</td>
                       <td className="px-4 py-3 capitalize">{animal.animal_type}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {animal.breed ?? '—'}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{animal.breed ?? '—'}</td>
                       <td className="px-4 py-3">
                         <Badge variant={animal.status === 'alive' ? 'default' : 'destructive'}>
                           {animal.status}
@@ -323,7 +352,8 @@ export const AnimalManagement: React.FC = () => {
                   <CardContent>
                     <p className="text-3xl font-bold">{count}</p>
                     <p className="text-xs text-muted-foreground">
-                      {animals.filter((a) => a.animal_type === type && a.status === 'alive').length} alive
+                      {animals.filter((a) => a.animal_type === type && a.status === 'alive').length}{' '}
+                      alive
                     </p>
                   </CardContent>
                 </Card>
@@ -366,7 +396,9 @@ export const AnimalManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {ANIMAL_TYPES.map((t) => (
-                      <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
+                      <SelectItem key={t} value={t} className="capitalize">
+                        {t}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -407,7 +439,10 @@ export const AnimalManagement: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={addLoading || !addForm.name || !addForm.animal_type}>
+              <Button
+                type="submit"
+                disabled={addLoading || !online || !addForm.name || !addForm.animal_type}
+              >
                 {addLoading ? 'Adding...' : 'Add Animal'}
               </Button>
             </DialogFooter>
@@ -446,7 +481,9 @@ export const AnimalManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {ANIMAL_TYPES.map((t) => (
-                      <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
+                      <SelectItem key={t} value={t} className="capitalize">
+                        {t}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -486,7 +523,7 @@ export const AnimalManagement: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={editLoading}>
+              <Button type="submit" disabled={editLoading || !online}>
                 {editLoading ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
