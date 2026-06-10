@@ -41,6 +41,13 @@ class Settings(BaseSettings):
         default="uploads/deaths", description="Directory for death report images"
     )
 
+    # Initial admin account (seeded on first startup if no users exist)
+    admin_username: str = Field(default="admin", description="Seeded admin username")
+    admin_initial_password: str = Field(
+        default="admin123",
+        description="Seeded admin password — MUST be overridden in production",
+    )
+
     # Logging
     log_level: str = Field(default="INFO", description="Logging level")
 
@@ -61,6 +68,11 @@ class Settings(BaseSettings):
             if self.database_url.startswith("sqlite"):
                 raise ValueError(
                     "SQLite is not supported in production — use PostgreSQL"
+                )
+            if self.admin_initial_password == "admin123":
+                raise ValueError(
+                    "ADMIN_INITIAL_PASSWORD must be set to a strong value in "
+                    "production (the default 'admin123' is not allowed)"
                 )
 
     class Config:

@@ -2,10 +2,12 @@
 Deaths router: death report submission and retrieval.
 """
 
+import os
 from datetime import date, datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -90,7 +92,21 @@ async def report_death(
     animal.status = "dead"
     animal.updated_at = datetime.utcnow()
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        # The DB unique constraints (one death record per animal, unique
+        # image hash) are authoritative under concurrency. If a racing
+        # request beat us, drop the image we just wrote and report 409.
+        try:
+            os.remove(image_path)
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A death report for this animal or image already exists",
+        )
     db.refresh(record)
     return record
 
