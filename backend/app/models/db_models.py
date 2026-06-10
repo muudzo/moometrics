@@ -91,7 +91,7 @@ class DeathRecord(Base):
     cause_of_death: Mapped[str] = mapped_column(String(200), nullable=False)
     date_of_death: Mapped[date] = mapped_column(Date, nullable=False)
     image_path: Mapped[str] = mapped_column(String(500), nullable=False)
-    image_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    image_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     notes: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

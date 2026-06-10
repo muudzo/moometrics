@@ -1,16 +1,31 @@
-# Render Blueprint — deploy with `render blueprint apply`
+# Render Blueprint — the single canonical deploy path for MooMetrics.
+# Deploy with `render blueprint apply` (or via the Render dashboard).
 # Docs: https://docs.render.com/blueprint-spec
+#
+# This is the ONE supported deploy path. docker-compose.yml is for local
+# development only; frontend/vercel.json is NOT used (kept out of the deploy).
+#
+# !! VALIDATE ON RENDER: plan identifiers and cross-service `fromService`
+#    wiring should be confirmed in the Render dashboard on first apply —
+#    they are the one part of this file not verifiable locally.
 
 services:
+  # --- Backend API (FastAPI) ---
   - type: web
     name: moometrics-api
     runtime: python
     region: oregon
-    plan: free
+    plan: starter            # paid tier: persistent disk + always-on
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
+    # Persists uploaded death-report images across deploys. Mounted at the
+    # backend working dir's `uploads/` so it matches StaticFiles + UPLOAD_DIR.
+    disk:
+      name: moometrics-uploads
+      mountPath: /opt/render/project/src/backend/uploads
+      sizeGB: 1
     envVars:
       - key: ENVIRONMENT
         value: production
@@ -19,17 +34,55 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: moometrics-db
-          property: connectionURI
-      - key: FRONTEND_URL
+          property: connectionString
+      # Operator sets a strong password in the dashboard; the app refuses to
+      # boot in production if this is left at the default.
+      - key: ADMIN_INITIAL_PASSWORD
         sync: false
+      # Auto-wired to the static frontend's host; CORS normalizes the scheme.
+      - key: FRONTEND_URL
+        fromService:
+          name: moometrics-web
+          type: web
+          property: host
+      # Relative path under the persistent disk mount above.
       - key: UPLOAD_DIR
-        value: /opt/render/project/src/uploads/deaths
+        value: uploads/deaths
       - key: PYTHON_VERSION
         value: "3.12.0"
 
+  # --- Frontend (static SPA + PWA) ---
+  - type: web
+    name: moometrics-web
+    runtime: static
+    rootDir: frontend
+    # VITE_BACKEND_URL is baked at build time, so we construct the full
+    # https origin from the backend service host here.
+    buildCommand: npm ci && VITE_BACKEND_URL="https://$BACKEND_HOST" npm run build
+    staticPublishPath: build
+    envVars:
+      - key: BACKEND_HOST
+        fromService:
+          name: moometrics-api
+          type: web
+          property: host
+    routes:
+      # SPA fallback — only applies when no built asset matches the path,
+      # so hashed assets and the PWA service worker are still served directly.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # Never cache the service worker or its registration shell.
+      - path: /sw.js
+        name: Cache-Control
+        value: "no-cache, no-store, must-revalidate"
+
 databases:
   - name: moometrics-db
-    plan: free
+    # Paid plan → automated daily backups + point-in-time recovery. Farm
+    # records are irreplaceable; the free tier has NO backups and expires.
+    plan: basic-256mb
     region: oregon
     databaseName: moometrics
     user: moometrics

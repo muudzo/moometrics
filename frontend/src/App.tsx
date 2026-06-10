@@ -4,6 +4,7 @@ import { AppSidebar } from './components/AppSidebar';
 import { Header } from './components/Header';
 import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
 import { Login } from './features/auth/components/Login';
+import { OfflineBanner } from './components/OfflineBanner';
 import { renderSection } from './app/section-registry';
 import type { AppSection } from './types/navigation';
 
@@ -13,7 +14,12 @@ function AppContent() {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <>
+        <OfflineBanner />
+        <Login />
+      </>
+    );
   }
 
   const toggleDarkMode = () => {
@@ -23,6 +29,7 @@ function AppContent() {
 
   return (
     <div className={`min-h-screen bg-background ${darkMode ? 'dark' : ''}`}>
+      <OfflineBanner />
       <SidebarProvider>
         <div className="flex h-screen">
           <AppSidebar activeComponent={activeComponent} setActiveComponent={setActiveComponent} />

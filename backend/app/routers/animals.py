@@ -11,6 +11,9 @@ from app.database import get_db
 from app.models.db_models import Animal, User
 from app.models.schemas import AnimalCreate, AnimalResponse, AnimalUpdate
 from app.services.auth_service import get_current_user, require_manager
+from app.utils import integrity_guard
+
+_TAG_TAKEN = "Tag number is already assigned to another animal"
 
 router = APIRouter(prefix="/api/animals", tags=["animals"])
 
@@ -35,11 +38,7 @@ def create_animal(
         existing = db.query(Animal).filter(Animal.tag_number == body.tag_number).first()
         if existing:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    f"Tag number '{body.tag_number}'"
-                    " is already assigned to another animal"
-                ),
+                status_code=status.HTTP_409_CONFLICT, detail=_TAG_TAKEN
             )
     animal = Animal(
         name=body.name,
@@ -52,7 +51,8 @@ def create_animal(
         status="alive",
     )
     db.add(animal)
-    db.commit()
+    with integrity_guard(db, _TAG_TAKEN):
+        db.commit()
     db.refresh(animal)
     return animal
 
@@ -99,11 +99,25 @@ def update_animal(
         )
 
     update_data = body.model_dump(exclude_unset=True)
+
+    new_tag = update_data.get("tag_number")
+    if new_tag:
+        clash = (
+            db.query(Animal)
+            .filter(Animal.tag_number == new_tag, Animal.id != animal_id)
+            .first()
+        )
+        if clash:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=_TAG_TAKEN
+            )
+
     for field, value in update_data.items():
         setattr(animal, field, value)
     animal.updated_at = datetime.utcnow()
 
-    db.commit()
+    with integrity_guard(db, _TAG_TAKEN):
+        db.commit()
     db.refresh(animal)
     return animal
 
