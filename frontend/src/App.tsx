@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SidebarProvider } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Header } from './components/Header';
@@ -6,12 +6,18 @@ import { AuthProvider, useAuth } from './features/auth/context/AuthContext';
 import { Login } from './features/auth/components/Login';
 import { OfflineBanner } from './components/OfflineBanner';
 import { renderSection } from './app/section-registry';
+import { drainOutbox } from './services/outbox';
 import type { AppSection } from './types/navigation';
 
 function AppContent() {
   const [activeComponent, setActiveComponent] = useState<AppSection>('dashboard');
   const [darkMode, setDarkMode] = useState(false);
   const { isAuthenticated, isBootstrapping } = useAuth();
+
+  // Flush any queued offline writes once a session is active.
+  useEffect(() => {
+    if (isAuthenticated) void drainOutbox();
+  }, [isAuthenticated]);
 
   if (isBootstrapping) {
     return (

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { apiFetch, ApiError, downloadFile, resolveAssetUrl, type Page } from '@/services/api';
+import { enqueueDeath } from '@/services/outbox';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -56,6 +57,7 @@ export const DeathManagement: React.FC = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitQueued, setSubmitQueued] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const aliveAnimals = animals.filter((a) => a.status === 'alive');
@@ -90,28 +92,48 @@ export const DeathManagement: React.FC = () => {
     }
   };
 
+  const resetForm = () => {
+    setSelectedAnimalId('');
+    setCause('');
+    setDateOfDeath('');
+    setNotes('');
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAnimalId || !cause || !dateOfDeath || !imageFile) return;
 
-    if (!online) {
+    const fields: Record<string, string> = {
+      animal_id: selectedAnimalId,
+      cause_of_death: cause,
+      date_of_death: dateOfDeath,
+    };
+    if (notes) fields.notes = notes;
+    const label = getAnimalName(Number(selectedAnimalId));
+
+    const queueOffline = async () => {
+      await enqueueDeath(fields, imageFile, label);
+      resetForm();
       setSubmitSuccess(false);
-      setSubmitError(
-        "You're offline — this report was NOT saved. Your entry is kept; reconnect and submit again."
-      );
+      setSubmitQueued(true);
+    };
+
+    if (!online) {
+      await queueOffline();
       return;
     }
 
     setSubmitLoading(true);
     setSubmitError(null);
     setSubmitSuccess(false);
+    setSubmitQueued(false);
 
     try {
       const formData = new FormData();
-      formData.append('animal_id', selectedAnimalId);
-      formData.append('cause_of_death', cause);
-      formData.append('date_of_death', dateOfDeath);
-      if (notes) formData.append('notes', notes);
+      Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
       formData.append('file', imageFile);
 
       await apiFetch<DeathRecord>('/api/deaths', {
@@ -119,22 +141,20 @@ export const DeathManagement: React.FC = () => {
         body: formData,
       });
 
-      // Reset form
-      setSelectedAnimalId('');
-      setCause('');
-      setDateOfDeath('');
-      setNotes('');
-      setImageFile(null);
-      setImagePreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      resetForm();
       setSubmitSuccess(true);
       await fetchData();
     } catch (e) {
-      setSubmitError(
-        e instanceof ApiError
-          ? e.message
-          : 'Failed to submit — this report was NOT saved. Please try again.'
-      );
+      // Network failure mid-submit: queue it (with its hashed image) instead.
+      if (e instanceof ApiError && e.isOffline) {
+        await queueOffline();
+      } else {
+        setSubmitError(
+          e instanceof ApiError
+            ? e.message
+            : 'Failed to submit — this report was NOT saved. Please try again.'
+        );
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -206,6 +226,12 @@ export const DeathManagement: React.FC = () => {
                 {submitSuccess && (
                   <div className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
                     Death report submitted successfully.
+                  </div>
+                )}
+                {submitQueued && (
+                  <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+                    Saved offline — this report will sync automatically when you reconnect. Track it
+                    from the cloud icon in the header.
                   </div>
                 )}
                 {submitError && (
@@ -309,25 +335,20 @@ export const DeathManagement: React.FC = () => {
                   className="w-full"
                   variant="destructive"
                   disabled={
-                    submitLoading ||
-                    !online ||
-                    !selectedAnimalId ||
-                    !cause ||
-                    !dateOfDeath ||
-                    !imageFile
+                    submitLoading || !selectedAnimalId || !cause || !dateOfDeath || !imageFile
                   }
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   {submitLoading
                     ? 'Submitting...'
-                    : !online
-                      ? 'Offline — cannot submit'
-                      : 'Submit Death Report'}
+                    : online
+                      ? 'Submit Death Report'
+                      : 'Save offline'}
                 </Button>
                 {!online && (
                   <p className="text-xs text-amber-600 text-center">
-                    You&rsquo;re offline. Your entry is kept on this screen — submit once you
-                    reconnect.
+                    You&rsquo;re offline. This report will be queued and synced automatically when
+                    you reconnect.
                   </p>
                 )}
               </form>

@@ -2,6 +2,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { SidebarTrigger } from './ui/sidebar';
 import { MooMetricsLogo } from './MooMetricsLogo';
+import { OutboxStatus } from './OutboxStatus';
 import { LogOut, Sun, Moon, Menu } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
@@ -27,6 +28,9 @@ export function Header({ darkMode, toggleDarkMode }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Offline write queue */}
+          <OutboxStatus />
+
           {/* Dark Mode Toggle */}
           <Button variant="ghost" size="sm" onClick={toggleDarkMode} aria-label="Toggle dark mode">
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { apiFetch, ApiError, downloadFile, type Page } from '@/services/api';
+import { enqueueAnimal } from '@/services/outbox';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,29 +104,44 @@ export const AnimalManagement: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.name || !addForm.animal_type) return;
+
+    const payload = {
+      name: addForm.name,
+      animal_type: addForm.animal_type,
+      tag_number: addForm.tag_number || null,
+      breed: addForm.breed || null,
+      date_of_birth: addForm.date_of_birth || null,
+      notes: addForm.notes || null,
+    };
+
+    const queueOffline = async () => {
+      await enqueueAnimal(payload, addForm.name);
+      setAddForm({ ...emptyForm });
+      setAddOpen(false);
+    };
+
     if (!online) {
-      setAddError("You're offline — this animal was NOT saved. Reconnect and try again.");
+      await queueOffline();
       return;
     }
+
     setAddLoading(true);
     setAddError(null);
     try {
       await apiFetch<Animal>('/api/animals', {
         method: 'POST',
-        body: JSON.stringify({
-          name: addForm.name,
-          animal_type: addForm.animal_type,
-          tag_number: addForm.tag_number || null,
-          breed: addForm.breed || null,
-          date_of_birth: addForm.date_of_birth || null,
-          notes: addForm.notes || null,
-        }),
+        body: JSON.stringify(payload),
       });
       setAddForm({ ...emptyForm });
       setAddOpen(false);
       await fetchAnimals();
     } catch (e) {
-      setAddError(e instanceof ApiError ? e.message : 'Failed to add animal');
+      // Network failure mid-submit: queue it rather than lose the entry.
+      if (e instanceof ApiError && e.isOffline) {
+        await queueOffline();
+      } else {
+        setAddError(e instanceof ApiError ? e.message : 'Failed to add animal');
+      }
     } finally {
       setAddLoading(false);
     }
@@ -219,7 +235,7 @@ export const AnimalManagement: React.FC = () => {
           >
             <Download className="h-4 w-4 mr-2" /> Export CSV
           </Button>
-          <Button onClick={() => setAddOpen(true)} disabled={!online}>
+          <Button onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4 mr-2" /> Add Animal
           </Button>
         </div>
@@ -440,11 +456,8 @@ export const AnimalManagement: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={addLoading || !online || !addForm.name || !addForm.animal_type}
-              >
-                {addLoading ? 'Adding...' : 'Add Animal'}
+              <Button type="submit" disabled={addLoading || !addForm.name || !addForm.animal_type}>
+                {addLoading ? 'Adding...' : online ? 'Add Animal' : 'Save offline'}
               </Button>
             </DialogFooter>
           </form>
