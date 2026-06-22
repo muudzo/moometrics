@@ -11,7 +11,15 @@ import type { AppSection } from './types/navigation';
 function AppContent() {
   const [activeComponent, setActiveComponent] = useState<AppSection>('dashboard');
   const [darkMode, setDarkMode] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isBootstrapping } = useAuth();
+
+  if (isBootstrapping) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">Loading…</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

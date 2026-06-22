@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { apiFetch, ApiError } from '@/services/api';
 import { Button } from '@/components/ui/button';
@@ -36,20 +36,20 @@ export const UserManagement: React.FC = () => {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
-      const data = await apiFetch<UserRecord[]>('/api/users', {}, user?.token);
+      const data = await apiFetch<UserRecord[]>('/api/users');
       setUsers(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,14 +58,14 @@ export const UserManagement: React.FC = () => {
     setCreateError(null);
     setCreateSuccess(false);
     try {
-      await apiFetch<UserRecord>(
-        '/api/auth/register',
-        {
-          method: 'POST',
-          body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
-        },
-        user?.token
-      );
+      await apiFetch<UserRecord>('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: newUsername,
+          password: newPassword,
+          role: newRole,
+        }),
+      });
       setNewUsername('');
       setNewPassword('');
       setNewRole('employee');
@@ -82,7 +82,7 @@ export const UserManagement: React.FC = () => {
     if (target.id === user?.id) return;
     if (!confirm(`Delete user '${target.username}'? This cannot be undone.`)) return;
     try {
-      await apiFetch(`/api/users/${target.id}`, { method: 'DELETE' }, user?.token);
+      await apiFetch(`/api/users/${target.id}`, { method: 'DELETE' });
       await fetchUsers();
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Failed to delete user');

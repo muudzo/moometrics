@@ -29,11 +29,11 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<DashboardStats>('/api/dashboard/stats', {}, user?.token)
+    apiFetch<DashboardStats>('/api/dashboard/stats')
       .then(setStats)
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load stats'))
       .finally(() => setLoading(false));
-  }, [user?.token]);
+  }, []);
 
   if (loading) {
     return (

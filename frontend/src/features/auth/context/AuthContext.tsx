@@ -1,114 +1,128 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { z } from 'zod';
-import { apiFetch, ApiError, UNAUTHORIZED_EVENT } from '@/services/api';
+import {
+  apiFetch,
+  ApiError,
+  restoreSession,
+  setAccessToken,
+  UNAUTHORIZED_EVENT,
+  type SessionInfo,
+} from '@/services/api';
 
-const UserSchema = z.object({
-  id: z.number(),
-  username: z.string().min(1),
-  role: z.enum(['manager', 'employee']),
-  token: z.string().min(1),
-});
-
-export type User = z.infer<typeof UserSchema>;
+export interface User {
+  id: number;
+  username: string;
+  role: 'manager' | 'employee';
+  farmId: number;
+  farmName: string;
+}
 
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
+  signup: (username: string, password: string, farmName: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isBootstrapping: boolean;
   error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'moometrics_user';
+function toUser(s: SessionInfo): User {
+  return {
+    id: s.user_id,
+    username: s.username,
+    role: s.role,
+    farmId: s.farm_id,
+    farmName: s.farm_name,
+  };
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
 
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) return null;
-      const result = UserSchema.safeParse(JSON.parse(stored));
-      if (!result.success) {
-        localStorage.removeItem(STORAGE_KEY);
-        return null;
-      }
-      return result.data;
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
-  });
+  // Restore the session from the httpOnly refresh cookie on first load.
+  useEffect(() => {
+    let active = true;
+    restoreSession().then((session) => {
+      if (!active) return;
+      if (session) setUser(toUser(session));
+      setIsBootstrapping(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  // A 401 from any API call (expired/invalid token) ends the session.
+  // A failed refresh (expired/revoked) ends the session.
   useEffect(() => {
     const onUnauthorized = () => {
       setUser(null);
-      localStorage.removeItem(STORAGE_KEY);
       setError('Your session has expired. Please sign in again.');
     };
     window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const authenticate = async (path: string, body: Record<string, unknown>) => {
     setError(null);
     setIsLoading(true);
     try {
-      const data = await apiFetch<{
-        access_token: string;
-        role: string;
-        user_id: number;
-        username: string;
-      }>('/api/auth/login', {
+      const data = await apiFetch<SessionInfo>(path, {
         method: 'POST',
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(body),
       });
-
-      const newUser: User = {
-        id: data.user_id,
-        username: data.username,
-        role: data.role as 'manager' | 'employee',
-        token: data.access_token,
-      };
-
-      const result = UserSchema.safeParse(newUser);
-      if (!result.success) {
-        throw new Error('Unexpected response from server');
-      }
-
-      setUser(result.data);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
+      setAccessToken(data.access_token);
+      setUser(toUser(data));
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Login failed';
+      const message = err instanceof ApiError ? err.message : 'Authentication failed';
       setError(message);
       setUser(null);
-      localStorage.removeItem(STORAGE_KEY);
+      setAccessToken(null);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
+  const login = (username: string, password: string) =>
+    authenticate('/api/auth/login', { username, password });
+
+  const signup = (username: string, password: string, farmName: string) =>
+    authenticate('/api/auth/signup', { username, password, farm_name: farmName });
+
   const logout = () => {
+    void apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    setAccessToken(null);
     setUser(null);
     setError(null);
-    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated: !!user, isLoading, error }}
+      value={{
+        user,
+        login,
+        signup,
+        logout,
+        isAuthenticated: !!user,
+        isLoading,
+        isBootstrapping,
+        error,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Colocating the consumer hook with its provider is the standard Context
+// pattern; the fast-refresh warning does not apply to a hook export.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

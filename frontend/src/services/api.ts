@@ -1,11 +1,57 @@
 const BASE = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8000';
 
-const STORAGE_KEY = 'moometrics_user';
 const DEFAULT_TIMEOUT_MS = 30_000;
 const UPLOAD_TIMEOUT_MS = 60_000;
 
-/** Dispatched when the API returns 401; AuthContext listens and logs out. */
+/** Dispatched when a request is unauthorized and refresh fails; AuthContext logs out. */
 export const UNAUTHORIZED_EVENT = 'moometrics:unauthorized';
+
+/**
+ * The access token lives in memory only (never localStorage) so it is not
+ * exposed to XSS. The refresh token is an httpOnly cookie the browser sends
+ * automatically; on a 401 we silently refresh and retry once.
+ */
+let accessToken: string | null = null;
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+export const getAccessToken = () => accessToken;
+
+export interface Page<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface SessionInfo {
+  access_token: string;
+  role: 'manager' | 'employee';
+  user_id: number;
+  username: string;
+  farm_id: number;
+  farm_name: string;
+}
+
+/**
+ * Restore a session on app load using the refresh cookie. Returns the session
+ * (and primes the in-memory access token) or null when there is no valid
+ * session. Used by AuthContext on mount instead of persisting tokens in JS.
+ */
+export async function restoreSession(): Promise<SessionInfo | null> {
+  try {
+    const res = await fetch(`${BASE}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) return null;
+    const data: SessionInfo = await res.json();
+    accessToken = data.access_token;
+    return data;
+  } catch {
+    return null;
+  }
+}
 
 export class ApiError extends Error {
   constructor(
@@ -22,30 +68,23 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, options?: RequestInit, token?: string): Promise<T> {
+async function rawFetch(path: string, options?: RequestInit): Promise<Response> {
   const headers: Record<string, string> = {
     ...(options?.headers as Record<string, string>),
   };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
 
   const isUpload = options?.body instanceof FormData;
-  // Don't set Content-Type for FormData — the browser sets it with the boundary.
-  if (!isUpload) {
-    headers['Content-Type'] = 'application/json';
-  }
+  if (!isUpload && options?.body) headers['Content-Type'] = 'application/json';
 
   const controller = new AbortController();
   const timeoutMs = isUpload ? UPLOAD_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
   const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, {
+    return await fetch(`${BASE}${path}`, {
       ...options,
       headers,
+      credentials: 'include',
       signal: controller.signal,
     });
   } catch (err) {
@@ -62,10 +101,43 @@ export async function apiFetch<T>(path: string, options?: RequestInit, token?: s
   } finally {
     clearTimeout(timer);
   }
+}
+
+// Coalesce concurrent refreshes so a burst of 401s triggers a single /refresh.
+let refreshing: Promise<boolean> | null = null;
+function refreshSession(): Promise<boolean> {
+  if (!refreshing) {
+    refreshing = (async () => {
+      try {
+        const res = await fetch(`${BASE}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        accessToken = data.access_token;
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+    void refreshing.finally(() => {
+      refreshing = null;
+    });
+  }
+  return refreshing;
+}
+
+export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  let res = await rawFetch(path, options);
+
+  // On expiry, try a one-shot silent refresh then replay the request.
+  if (res.status === 401 && !path.startsWith('/api/auth/')) {
+    if (await refreshSession()) res = await rawFetch(path, options);
+  }
 
   if (res.status === 401) {
-    // Token is missing/expired/invalid — drop the session and notify the app.
-    localStorage.removeItem(STORAGE_KEY);
+    accessToken = null;
     window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
     throw new ApiError(401, 'Your session has expired. Please sign in again.');
   }
@@ -78,5 +150,27 @@ export async function apiFetch<T>(path: string, options?: RequestInit, token?: s
   if (res.status === 204) return undefined as T;
   return res.json();
 }
+
+/** Download an authenticated file (e.g. CSV export) and trigger a save dialog. */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  let res = await rawFetch(path, { method: 'GET' });
+  if (res.status === 401 && (await refreshSession())) {
+    res = await rawFetch(path, { method: 'GET' });
+  }
+  if (!res.ok) throw new ApiError(res.status, `Download failed (HTTP ${res.status})`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Resolve a stored image reference to a loadable URL (absolute for S3/R2). */
+export const resolveAssetUrl = (path: string): string =>
+  /^https?:\/\//.test(path) ? path : `${BASE}${path.startsWith('/') ? '' : '/'}${path}`;
 
 export const apiUrl = (path: string) => `${BASE}${path}`;

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { apiFetch, ApiError, apiUrl } from '@/services/api';
+import { apiFetch, ApiError, downloadFile, resolveAssetUrl, type Page } from '@/services/api';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertTriangle, Upload, ImageIcon } from 'lucide-react';
+import { AlertTriangle, Upload, ImageIcon, Download } from 'lucide-react';
 
 interface Animal {
   id: number;
@@ -60,24 +60,24 @@ export const DeathManagement: React.FC = () => {
 
   const aliveAnimals = animals.filter((a) => a.status === 'alive');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [animalsData, deathsData] = await Promise.all([
-        apiFetch<Animal[]>('/api/animals', {}, user?.token),
-        apiFetch<DeathRecord[]>('/api/deaths', {}, user?.token),
+        apiFetch<Page<Animal>>('/api/animals?limit=200'),
+        apiFetch<Page<DeathRecord>>('/api/deaths?limit=200'),
       ]);
-      setAnimals(animalsData);
-      setDeaths(deathsData);
+      setAnimals(animalsData.items);
+      setDeaths(deathsData.items);
     } catch (e) {
       setDataError(e instanceof Error ? e.message : 'Failed to load data');
     } finally {
       setLoadingData(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -114,14 +114,10 @@ export const DeathManagement: React.FC = () => {
       if (notes) formData.append('notes', notes);
       formData.append('file', imageFile);
 
-      await apiFetch<DeathRecord>(
-        '/api/deaths',
-        {
-          method: 'POST',
-          body: formData,
-        },
-        user?.token
-      );
+      await apiFetch<DeathRecord>('/api/deaths', {
+        method: 'POST',
+        body: formData,
+      });
 
       // Reset form
       setSelectedAnimalId('');
@@ -165,13 +161,22 @@ export const DeathManagement: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <AlertTriangle className="h-6 w-6 text-destructive" /> Death Reports
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {deaths.length} total reports &mdash; {thisMonth} this month
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <AlertTriangle className="h-6 w-6 text-destructive" /> Death Reports
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {deaths.length} total reports &mdash; {thisMonth} this month
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => downloadFile('/api/deaths/export.csv', 'deaths.csv')}
+          disabled={!online || deaths.length === 0}
+        >
+          <Download className="h-4 w-4 mr-2" /> Export CSV
+        </Button>
       </div>
 
       {dataError && (
@@ -383,9 +388,9 @@ const DeathTable: React.FC<DeathTableProps> = ({ deaths, getAnimalName }) => {
               <td className="px-4 py-3">{d.cause_of_death}</td>
               <td className="px-4 py-3">{new Date(d.date_of_death).toLocaleDateString()}</td>
               <td className="px-4 py-3">
-                <a href={apiUrl(`/${d.image_path}`)} target="_blank" rel="noopener noreferrer">
+                <a href={resolveAssetUrl(d.image_path)} target="_blank" rel="noopener noreferrer">
                   <img
-                    src={apiUrl(`/${d.image_path}`)}
+                    src={resolveAssetUrl(d.image_path)}
                     alt="death evidence"
                     className="h-10 w-10 object-cover rounded cursor-pointer hover:opacity-80"
                     onError={(e) => {
