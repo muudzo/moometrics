@@ -22,7 +22,7 @@ export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarPr
   const { user } = useAuth();
 
   const visibleItems = navigationItems.filter(
-    (item) => user?.role && item.roles.includes(user.role),
+    (item) => user?.role && item.roles.includes(user.role)
   );
 
   return (

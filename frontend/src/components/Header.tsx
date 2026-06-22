@@ -36,7 +36,10 @@ export function Header({ darkMode, toggleDarkMode }: HeaderProps) {
           {user && (
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium hidden sm:block">{user.username}</span>
-              <Badge variant={user.role === 'manager' ? 'default' : 'secondary'} className="text-xs">
+              <Badge
+                variant={user.role === 'manager' ? 'default' : 'secondary'}
+                className="text-xs"
+              >
                 {user.role}
               </Badge>
             </div>

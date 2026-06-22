@@ -58,10 +58,14 @@ export const UserManagement: React.FC = () => {
     setCreateError(null);
     setCreateSuccess(false);
     try {
-      await apiFetch<UserRecord>('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
-      }, user?.token);
+      await apiFetch<UserRecord>(
+        '/api/auth/register',
+        {
+          method: 'POST',
+          body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
+        },
+        user?.token
+      );
       setNewUsername('');
       setNewPassword('');
       setNewRole('employee');
@@ -103,8 +107,8 @@ export const UserManagement: React.FC = () => {
           <Users className="h-6 w-6" /> User Management
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {users.length} users &mdash; {managers} manager{managers !== 1 ? 's' : ''},{' '}
-          {employees} employee{employees !== 1 ? 's' : ''}
+          {users.length} users &mdash; {managers} manager{managers !== 1 ? 's' : ''}, {employees}{' '}
+          employee{employees !== 1 ? 's' : ''}
         </p>
       </div>
 
@@ -212,7 +216,9 @@ export const UserManagement: React.FC = () => {
                           variant="destructive"
                           disabled={u.id === user?.id}
                           onClick={() => handleDelete(u)}
-                          title={u.id === user?.id ? 'Cannot delete your own account' : 'Delete user'}
+                          title={
+                            u.id === user?.id ? 'Cannot delete your own account' : 'Delete user'
+                          }
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>

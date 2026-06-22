@@ -92,8 +92,8 @@ export function Dashboard() {
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Welcome back, <span className="font-medium">{user?.username}</span>
-          {' '}&mdash; <span className="capitalize">{user?.role}</span>
+          Welcome back, <span className="font-medium">{user?.username}</span> &mdash;{' '}
+          <span className="capitalize">{user?.role}</span>
         </p>
       </div>
 

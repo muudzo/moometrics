@@ -81,9 +81,7 @@ export const Login: React.FC = () => {
           </div>
           <CardTitle className="text-2xl font-bold">MooMetrics</CardTitle>
           <CardDescription>
-            {isSignup
-              ? 'Create an employee account'
-              : 'Sign in to manage your farm records'}
+            {isSignup ? 'Create an employee account' : 'Sign in to manage your farm records'}
           </CardDescription>
         </CardHeader>
 
@@ -151,8 +149,12 @@ export const Login: React.FC = () => {
               disabled={isSignup ? signupLoading : isLoading}
             >
               {isSignup
-                ? signupLoading ? 'Creating account...' : 'Create Account'
-                : isLoading ? 'Signing in...' : 'Sign In'}
+                ? signupLoading
+                  ? 'Creating account...'
+                  : 'Create Account'
+                : isLoading
+                  ? 'Signing in...'
+                  : 'Sign In'}
             </Button>
 
             <p className="text-sm text-muted-foreground text-center">
