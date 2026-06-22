@@ -1,4 +1,12 @@
-import { AlertTriangle, LayoutDashboard, PawPrint, Users, type LucideIcon } from 'lucide-react';
+import {
+  AlertTriangle,
+  LayoutDashboard,
+  PawPrint,
+  ScrollText,
+  Settings,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import type { AppSection } from '@/types/navigation';
 
 interface NavigationItem {
@@ -32,5 +40,17 @@ export const navigationItems: NavigationItem[] = [
     icon: Users,
     component: 'users',
     roles: ['manager'],
+  },
+  {
+    title: 'Audit Log',
+    icon: ScrollText,
+    component: 'audit',
+    roles: ['manager'],
+  },
+  {
+    title: 'Settings',
+    icon: Settings,
+    component: 'settings',
+    roles: ['manager', 'employee'],
   },
 ];
