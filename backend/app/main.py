@@ -168,9 +168,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(dashboard.router)
     app.include_router(audit.router)
 
-    # Serve uploaded death images as static files (local storage backend).
-    os.makedirs(settings.upload_dir, exist_ok=True)
-    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+    # Serve uploaded death images as static files (local storage backend only;
+    # S3/R2 serves objects from its own public/presigned URLs).
+    if settings.storage_backend == "local":
+        os.makedirs(settings.upload_dir, exist_ok=True)
+        os.makedirs("uploads", exist_ok=True)
+        app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
     @app.get("/")
     async def root():
