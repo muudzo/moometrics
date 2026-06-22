@@ -36,8 +36,23 @@ class Settings(BaseSettings):
         default="change-me-in-production", description="Secret key for JWT signing"
     )
     jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
-    jwt_expire_minutes: int = Field(
-        default=480, description="JWT expiry in minutes (8 hours)"
+    jwt_issuer: str = Field(default="moometrics", description="JWT issuer claim")
+    access_token_expire_minutes: int = Field(
+        default=15, description="Short-lived access-token lifetime (minutes)"
+    )
+    refresh_token_expire_days: int = Field(
+        default=30, description="Refresh-token lifetime (days)"
+    )
+    refresh_cookie_name: str = Field(
+        default="moometrics_refresh", description="Refresh-token cookie name"
+    )
+
+    # Brute-force protection
+    max_failed_logins: int = Field(
+        default=5, description="Failed logins before an account is locked"
+    )
+    lockout_minutes: int = Field(
+        default=15, description="How long an account stays locked (minutes)"
     )
 
     # Database
