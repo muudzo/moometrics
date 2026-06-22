@@ -10,7 +10,7 @@ from app.models.db_models import Animal, User, utcnow
 from app.models.schemas import AnimalCreate, AnimalResponse, AnimalUpdate, Page
 from app.services.audit_service import record_audit
 from app.services.auth_service import get_current_user, require_manager
-from app.utils import integrity_guard
+from app.utils import csv_response, integrity_guard
 
 _TAG_TAKEN = "Tag number is already assigned to another animal"
 
@@ -94,6 +94,46 @@ def create_animal(
         details={"name": animal.name, "tag_number": animal.tag_number},
     )
     return animal
+
+
+@router.get("/export.csv")
+def export_animals_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Download this farm's animals as CSV."""
+    animals = (
+        db.query(Animal)
+        .filter(Animal.farm_id == current_user.farm_id)
+        .order_by(Animal.created_at.desc())
+        .all()
+    )
+    header = [
+        "id",
+        "name",
+        "animal_type",
+        "tag_number",
+        "breed",
+        "date_of_birth",
+        "status",
+        "notes",
+        "created_at",
+    ]
+    rows = (
+        [
+            a.id,
+            a.name,
+            a.animal_type,
+            a.tag_number or "",
+            a.breed or "",
+            a.date_of_birth or "",
+            a.status,
+            a.notes or "",
+            a.created_at,
+        ]
+        for a in animals
+    )
+    return csv_response("animals.csv", header, rows)
 
 
 @router.get("/{animal_id}", response_model=AnimalResponse)

@@ -29,6 +29,9 @@ pillow==10.2.0
 # Object storage (S3 / Cloudflare R2)
 boto3==1.34.34
 
+# Error tracking (optional — activated only when SENTRY_DSN is set)
+sentry-sdk[fastapi]==1.40.0
+
 # Linting and Formatting
 flake8==7.0.0
 black==24.1.0

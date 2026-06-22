@@ -26,6 +26,7 @@ from app.services.audit_service import record_audit
 from app.services.auth_service import get_current_user
 from app.services.image_service import image_hash_exists, process_death_image
 from app.services.storage import get_storage_backend
+from app.utils import csv_response
 
 router = APIRouter(prefix="/api/deaths", tags=["deaths"])
 
@@ -163,6 +164,40 @@ async def report_death(
         details={"animal_id": animal_id, "cause_of_death": cause_of_death},
     )
     return _to_response(record)
+
+
+@router.get("/export.csv")
+def export_deaths_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Download this farm's death reports as CSV (employees: own only)."""
+    query = db.query(DeathRecord).filter(DeathRecord.farm_id == current_user.farm_id)
+    if current_user.role != "manager":
+        query = query.filter(DeathRecord.reported_by_user_id == current_user.id)
+    records = query.order_by(DeathRecord.created_at.desc()).all()
+    header = [
+        "id",
+        "animal_id",
+        "reported_by_user_id",
+        "cause_of_death",
+        "date_of_death",
+        "notes",
+        "created_at",
+    ]
+    rows = (
+        [
+            r.id,
+            r.animal_id,
+            r.reported_by_user_id,
+            r.cause_of_death,
+            r.date_of_death,
+            r.notes or "",
+            r.created_at,
+        ]
+        for r in records
+    )
+    return csv_response("deaths.csv", header, rows)
 
 
 @router.get("/{record_id}", response_model=DeathRecordResponse)

@@ -92,8 +92,15 @@ class Settings(BaseSettings):
         description="Name of the farm created alongside the seeded admin",
     )
 
-    # Logging
+    # Logging & error tracking
     log_level: str = Field(default="INFO", description="Logging level")
+    log_format: Literal["json", "console"] = Field(
+        default="console", description="Log output format (json in production)"
+    )
+    sentry_dsn: str = Field(default="", description="Sentry DSN (empty = disabled)")
+    sentry_traces_sample_rate: float = Field(
+        default=0.0, description="Sentry performance trace sample rate (0..1)"
+    )
 
     @property
     def is_production(self) -> bool:

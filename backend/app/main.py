@@ -23,6 +23,7 @@ from starlette.responses import JSONResponse, Response
 
 from app.config import Settings, get_settings
 from app.database import SessionLocal
+from app.observability import install_observability
 from app.models.db_models import Animal  # noqa: F401 — registers model
 from app.models.db_models import DeathRecord  # noqa: F401
 from app.models.db_models import User
@@ -142,6 +143,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json" if docs_enabled else None,
         lifespan=lifespan,
     )
+
+    # Structured logging, request-id propagation, optional Sentry.
+    install_observability(app, settings)
 
     # Rate limiting (slowapi) — limits are applied per-route in the routers.
     app.state.limiter = limiter

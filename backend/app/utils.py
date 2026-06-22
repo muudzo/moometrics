@@ -1,10 +1,37 @@
 """Shared helpers."""
 
+import csv
+import io
 from contextlib import contextmanager
+from typing import Iterable, Sequence
 
 from fastapi import HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+
+def csv_response(
+    filename: str, header: Sequence[str], rows: Iterable[Sequence[object]]
+) -> StreamingResponse:
+    """Build a downloadable CSV streaming response."""
+
+    def generate():
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(header)
+        yield buffer.getvalue()
+        for row in rows:
+            buffer.seek(0)
+            buffer.truncate(0)
+            writer.writerow(row)
+            yield buffer.getvalue()
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @contextmanager
