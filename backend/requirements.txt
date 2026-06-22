@@ -1,14 +1,14 @@
 # FastAPI and server
-fastapi==0.109.0
+fastapi==0.138.0
 uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+python-multipart==0.0.32
 
 # Data validation
-pydantic==2.5.3
-pydantic-settings==2.1.0
+pydantic==2.13.4
+pydantic-settings==2.14.2
 
 # Environment variables
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 
 # Database
 sqlalchemy==2.0.25
@@ -16,7 +16,7 @@ alembic==1.13.1
 psycopg2-binary==2.9.9
 
 # Auth
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 
@@ -24,19 +24,23 @@ bcrypt==4.0.1
 slowapi==0.1.9
 
 # Image handling
-pillow==10.2.0
+pillow==12.2.0
 
 # Object storage (S3 / Cloudflare R2)
 boto3==1.34.34
 
 # Error tracking (optional — activated only when SENTRY_DSN is set)
-sentry-sdk[fastapi]==1.40.0
+sentry-sdk[fastapi]==2.63.0
 
 # Linting and Formatting
 flake8==7.0.0
-black==24.1.0
+black==26.5.1
 
 # Testing
-pytest==8.0.0
-pytest-cov==4.1.0
+pytest==9.1.1
+pytest-cov==7.1.0
 httpx==0.27.2
+
+# Security scanning (CI)
+bandit==1.7.7
+pip-audit==2.7.3

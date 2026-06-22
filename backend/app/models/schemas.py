@@ -5,7 +5,6 @@ from datetime import datetime, date
 from typing import Generic, Literal, Optional, TypeVar
 from pydantic import BaseModel, Field, field_validator
 
-
 # ---------------------------------------------------------------------------
 # Shared validators
 # ---------------------------------------------------------------------------
