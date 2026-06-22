@@ -1,9 +1,10 @@
 """
-Dashboard router: aggregated farm statistics.
+Dashboard router: aggregated statistics for the caller's farm.
 """
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models.db_models import Animal, DeathRecord, User
@@ -16,26 +17,37 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 @router.get("/stats", response_model=DashboardStats)
 def get_stats(
     db: Session = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    """Return aggregated animal statistics for the dashboard."""
-    animals = db.query(Animal).all()
+    """Return aggregated animal statistics for the caller's farm."""
+    farm_id = current_user.farm_id
 
-    total = len(animals)
-    alive = sum(1 for a in animals if a.status == "alive")
+    # Aggregate counts by type/status in the database (no per-row Python loop).
+    rows = (
+        db.query(Animal.animal_type, Animal.status, func.count(Animal.id))
+        .filter(Animal.farm_id == farm_id)
+        .group_by(Animal.animal_type, Animal.status)
+        .all()
+    )
+    type_breakdown: dict[str, int] = {}
+    total = alive = 0
+    for animal_type, status_value, count in rows:
+        type_breakdown[animal_type] = type_breakdown.get(animal_type, 0) + count
+        total += count
+        if status_value == "alive":
+            alive += count
     dead = total - alive
     death_rate = round((dead / total * 100), 1) if total > 0 else 0.0
 
-    type_breakdown: dict[str, int] = {}
-    for animal in animals:
-        type_breakdown[animal.animal_type] = (
-            type_breakdown.get(animal.animal_type, 0) + 1
-        )
-
-    # Build recent activity from last 5 animals added + last 5 death records
     activity: list[RecentActivity] = []
 
-    recent_animals = db.query(Animal).order_by(Animal.created_at.desc()).limit(5).all()
+    recent_animals = (
+        db.query(Animal)
+        .filter(Animal.farm_id == farm_id)
+        .order_by(Animal.created_at.desc())
+        .limit(5)
+        .all()
+    )
     for a in recent_animals:
         activity.append(
             RecentActivity(
@@ -46,11 +58,15 @@ def get_stats(
         )
 
     recent_deaths = (
-        db.query(DeathRecord).order_by(DeathRecord.created_at.desc()).limit(5).all()
+        db.query(DeathRecord)
+        .filter(DeathRecord.farm_id == farm_id)
+        .options(joinedload(DeathRecord.animal))
+        .order_by(DeathRecord.created_at.desc())
+        .limit(5)
+        .all()
     )
     for d in recent_deaths:
-        animal = db.query(Animal).filter(Animal.id == d.animal_id).first()
-        name = animal.name if animal else f"Animal #{d.animal_id}"
+        name = d.animal.name if d.animal else f"Animal #{d.animal_id}"
         activity.append(
             RecentActivity(
                 type="death_reported",
@@ -59,7 +75,6 @@ def get_stats(
             )
         )
 
-    # Sort combined activity by timestamp descending, take top 5
     activity.sort(key=lambda x: x.timestamp, reverse=True)
     activity = activity[:5]
 
