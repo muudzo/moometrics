@@ -14,6 +14,17 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+coverage/
+.coverage
+htmlcov/
+
+# Uploaded death-report images (runtime)
+backend/uploads/
+
+# Test/E2E artifacts
+playwright-report/
+test-results/
+dev-dist/
 
 # System
 .DS_Store
