@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch, ApiError } from '@/services/api';
+import { ApiError } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,15 +19,17 @@ export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [farmName, setFarmName] = useState('');
   const [signupError, setSignupError] = useState<string | null>(null);
   const [signupLoading, setSignupLoading] = useState(false);
 
-  const { login, isLoading, error } = useAuth();
+  const { login, signup, isLoading, error } = useAuth();
 
   const resetForm = () => {
     setUsername('');
     setPassword('');
     setConfirm('');
+    setFarmName('');
     setSignupError(null);
   };
 
@@ -50,19 +52,19 @@ export const Login: React.FC = () => {
       setSignupError('Passwords do not match');
       return;
     }
-    if (password.length < 6) {
-      setSignupError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setSignupError('Password must be at least 8 characters');
+      return;
+    }
+    if (!farmName.trim()) {
+      setSignupError('Please enter a farm name');
       return;
     }
 
     setSignupLoading(true);
     try {
-      await apiFetch('/api/auth/signup', {
-        method: 'POST',
-        body: JSON.stringify({ username: username.trim(), password }),
-      });
-      // After signup, log in automatically
-      await login(username.trim(), password);
+      // Self-serve onboarding: creates a new farm with you as its manager.
+      await signup(username.trim(), password, farmName.trim());
     } catch (err) {
       setSignupError(err instanceof ApiError ? err.message : 'Sign up failed');
     } finally {
@@ -81,9 +83,7 @@ export const Login: React.FC = () => {
           </div>
           <CardTitle className="text-2xl font-bold">MooMetrics</CardTitle>
           <CardDescription>
-            {isSignup
-              ? 'Create an employee account'
-              : 'Sign in to manage your farm records'}
+            {isSignup ? 'Create your farm account' : 'Sign in to manage your farm records'}
           </CardDescription>
         </CardHeader>
 
@@ -137,9 +137,23 @@ export const Login: React.FC = () => {
             )}
 
             {isSignup && (
+              <div className="space-y-2">
+                <Label htmlFor="farmName">Farm Name</Label>
+                <Input
+                  id="farmName"
+                  placeholder="e.g. Green Acres Farm"
+                  value={farmName}
+                  onChange={(e) => setFarmName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            {isSignup && (
               <p className="text-xs text-muted-foreground">
-                New accounts are created as <span className="font-medium">employee</span> role.
-                Contact your manager to be assigned a manager role.
+                You&apos;ll be the <span className="font-medium">manager</span> of your new farm.
+                Passwords need 8+ characters with upper, lower, and a digit. Add employees later
+                from the Users page.
               </p>
             )}
           </CardContent>
@@ -151,8 +165,12 @@ export const Login: React.FC = () => {
               disabled={isSignup ? signupLoading : isLoading}
             >
               {isSignup
-                ? signupLoading ? 'Creating account...' : 'Create Account'
-                : isLoading ? 'Signing in...' : 'Sign In'}
+                ? signupLoading
+                  ? 'Creating account...'
+                  : 'Create Account'
+                : isLoading
+                  ? 'Signing in...'
+                  : 'Sign In'}
             </Button>
 
             <p className="text-sm text-muted-foreground text-center">

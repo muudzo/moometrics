@@ -2,9 +2,8 @@
 
 import re
 from datetime import datetime, date
-from typing import Optional, Literal
+from typing import Generic, Literal, Optional, TypeVar
 from pydantic import BaseModel, Field, field_validator
-
 
 # ---------------------------------------------------------------------------
 # Shared validators
@@ -40,10 +39,12 @@ class LoginRequest(BaseModel):
 
 
 class SignupRequest(BaseModel):
-    """Public self-registration — always creates an employee account."""
+    """Public self-registration — creates a new farm with the signer as its
+    manager (self-serve org onboarding)."""
 
     username: str = Field(min_length=3, max_length=32)
     password: str = Field(min_length=8, max_length=128)
+    farm_name: Optional[str] = Field(default=None, max_length=120)
 
     @field_validator("username")
     @classmethod
@@ -51,6 +52,18 @@ class SignupRequest(BaseModel):
         return _validate_username(v)
 
     @field_validator("password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return _validate_password(v)
+
+
+class PasswordChangeRequest(BaseModel):
+    """Change the current user's own password."""
+
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
     @classmethod
     def check_password(cls, v: str) -> str:
         return _validate_password(v)
@@ -76,6 +89,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     role: str
+    farm_id: int
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -87,6 +101,8 @@ class TokenResponse(BaseModel):
     role: str
     user_id: int
     username: str
+    farm_id: int
+    farm_name: str
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +141,7 @@ class AnimalUpdate(BaseModel):
 
 class AnimalResponse(BaseModel):
     id: int
+    farm_id: int
     name: str
     animal_type: str
     tag_number: Optional[str]
@@ -146,6 +163,7 @@ class AnimalResponse(BaseModel):
 
 class DeathRecordResponse(BaseModel):
     id: int
+    farm_id: int
     animal_id: int
     reported_by_user_id: int
     cause_of_death: str
@@ -175,3 +193,38 @@ class DashboardStats(BaseModel):
     death_rate: float
     type_breakdown: dict[str, int]
     recent_activity: list[RecentActivity]
+
+
+# ---------------------------------------------------------------------------
+# Audit log
+# ---------------------------------------------------------------------------
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    actor_user_id: Optional[int]
+    actor_username: Optional[str]
+    action: str
+    entity_type: str
+    entity_id: Optional[int]
+    details: Optional[dict]
+    ip: Optional[str]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ---------------------------------------------------------------------------
+# Pagination
+# ---------------------------------------------------------------------------
+
+T = TypeVar("T")
+
+
+class Page(BaseModel, Generic[T]):
+    """Paginated response envelope."""
+
+    items: list[T]
+    total: int
+    page: int
+    limit: int

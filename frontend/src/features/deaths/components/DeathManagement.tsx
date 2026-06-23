@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { apiFetch, ApiError, apiUrl } from '@/services/api';
+import { apiFetch, ApiError, downloadFile, resolveAssetUrl, type Page } from '@/services/api';
+import { enqueueDeath } from '@/services/outbox';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertTriangle, Upload, ImageIcon } from 'lucide-react';
+import { AlertTriangle, Upload, ImageIcon, Download } from 'lucide-react';
 
 interface Animal {
   id: number;
@@ -56,28 +57,29 @@ export const DeathManagement: React.FC = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitQueued, setSubmitQueued] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const aliveAnimals = animals.filter((a) => a.status === 'alive');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [animalsData, deathsData] = await Promise.all([
-        apiFetch<Animal[]>('/api/animals', {}, user?.token),
-        apiFetch<DeathRecord[]>('/api/deaths', {}, user?.token),
+        apiFetch<Page<Animal>>('/api/animals?limit=200'),
+        apiFetch<Page<DeathRecord>>('/api/deaths?limit=200'),
       ]);
-      setAnimals(animalsData);
-      setDeaths(deathsData);
+      setAnimals(animalsData.items);
+      setDeaths(deathsData.items);
     } catch (e) {
       setDataError(e instanceof Error ? e.message : 'Failed to load data');
     } finally {
       setLoadingData(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -90,55 +92,69 @@ export const DeathManagement: React.FC = () => {
     }
   };
 
+  const resetForm = () => {
+    setSelectedAnimalId('');
+    setCause('');
+    setDateOfDeath('');
+    setNotes('');
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAnimalId || !cause || !dateOfDeath || !imageFile) return;
 
-    if (!online) {
+    const fields: Record<string, string> = {
+      animal_id: selectedAnimalId,
+      cause_of_death: cause,
+      date_of_death: dateOfDeath,
+    };
+    if (notes) fields.notes = notes;
+    const label = getAnimalName(Number(selectedAnimalId));
+
+    const queueOffline = async () => {
+      await enqueueDeath(fields, imageFile, label);
+      resetForm();
       setSubmitSuccess(false);
-      setSubmitError(
-        "You're offline — this report was NOT saved. Your entry is kept; reconnect and submit again."
-      );
+      setSubmitQueued(true);
+    };
+
+    if (!online) {
+      await queueOffline();
       return;
     }
 
     setSubmitLoading(true);
     setSubmitError(null);
     setSubmitSuccess(false);
+    setSubmitQueued(false);
 
     try {
       const formData = new FormData();
-      formData.append('animal_id', selectedAnimalId);
-      formData.append('cause_of_death', cause);
-      formData.append('date_of_death', dateOfDeath);
-      if (notes) formData.append('notes', notes);
+      Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
       formData.append('file', imageFile);
 
-      await apiFetch<DeathRecord>(
-        '/api/deaths',
-        {
-          method: 'POST',
-          body: formData,
-        },
-        user?.token
-      );
+      await apiFetch<DeathRecord>('/api/deaths', {
+        method: 'POST',
+        body: formData,
+      });
 
-      // Reset form
-      setSelectedAnimalId('');
-      setCause('');
-      setDateOfDeath('');
-      setNotes('');
-      setImageFile(null);
-      setImagePreview(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      resetForm();
       setSubmitSuccess(true);
       await fetchData();
     } catch (e) {
-      setSubmitError(
-        e instanceof ApiError
-          ? e.message
-          : 'Failed to submit — this report was NOT saved. Please try again.'
-      );
+      // Network failure mid-submit: queue it (with its hashed image) instead.
+      if (e instanceof ApiError && e.isOffline) {
+        await queueOffline();
+      } else {
+        setSubmitError(
+          e instanceof ApiError
+            ? e.message
+            : 'Failed to submit — this report was NOT saved. Please try again.'
+        );
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -165,13 +181,22 @@ export const DeathManagement: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <AlertTriangle className="h-6 w-6 text-destructive" /> Death Reports
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {deaths.length} total reports &mdash; {thisMonth} this month
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <AlertTriangle className="h-6 w-6 text-destructive" /> Death Reports
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {deaths.length} total reports &mdash; {thisMonth} this month
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => downloadFile('/api/deaths/export.csv', 'deaths.csv')}
+          disabled={!online || deaths.length === 0}
+        >
+          <Download className="h-4 w-4 mr-2" /> Export CSV
+        </Button>
       </div>
 
       {dataError && (
@@ -201,6 +226,12 @@ export const DeathManagement: React.FC = () => {
                 {submitSuccess && (
                   <div className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
                     Death report submitted successfully.
+                  </div>
+                )}
+                {submitQueued && (
+                  <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+                    Saved offline — this report will sync automatically when you reconnect. Track it
+                    from the cloud icon in the header.
                   </div>
                 )}
                 {submitError && (
@@ -304,25 +335,20 @@ export const DeathManagement: React.FC = () => {
                   className="w-full"
                   variant="destructive"
                   disabled={
-                    submitLoading ||
-                    !online ||
-                    !selectedAnimalId ||
-                    !cause ||
-                    !dateOfDeath ||
-                    !imageFile
+                    submitLoading || !selectedAnimalId || !cause || !dateOfDeath || !imageFile
                   }
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   {submitLoading
                     ? 'Submitting...'
-                    : !online
-                      ? 'Offline — cannot submit'
-                      : 'Submit Death Report'}
+                    : online
+                      ? 'Submit Death Report'
+                      : 'Save offline'}
                 </Button>
                 {!online && (
                   <p className="text-xs text-amber-600 text-center">
-                    You&rsquo;re offline. Your entry is kept on this screen — submit once you
-                    reconnect.
+                    You&rsquo;re offline. This report will be queued and synced automatically when
+                    you reconnect.
                   </p>
                 )}
               </form>
@@ -383,9 +409,9 @@ const DeathTable: React.FC<DeathTableProps> = ({ deaths, getAnimalName }) => {
               <td className="px-4 py-3">{d.cause_of_death}</td>
               <td className="px-4 py-3">{new Date(d.date_of_death).toLocaleDateString()}</td>
               <td className="px-4 py-3">
-                <a href={apiUrl(`/${d.image_path}`)} target="_blank" rel="noopener noreferrer">
+                <a href={resolveAssetUrl(d.image_path)} target="_blank" rel="noopener noreferrer">
                   <img
-                    src={apiUrl(`/${d.image_path}`)}
+                    src={resolveAssetUrl(d.image_path)}
                     alt="death evidence"
                     className="h-10 w-10 object-cover rounded cursor-pointer hover:opacity-80"
                     onError={(e) => {

@@ -8,7 +8,7 @@ MooMetrics is a **Farm Animal Record-Keeping System** with role-based access for
 - Death reporting with mandatory photo upload and duplicate-image detection (SHA-256 hash)
 - SQLite-backed persistence via SQLAlchemy ORM
 
-**Version:** 1.0.0 | **Branch:** `core`
+**Version:** 2.0.0 | **Branch:** `main`
 
 ---
 
@@ -211,9 +211,22 @@ Always use `apiFetch<T>(path, options, user?.token)` from [frontend/src/services
 
 ---
 
-## What Is Not Implemented
-- Password change / profile update
-- Pagination for large animal lists
-- Export / reporting (CSV, PDF)
-- Tests (frontend or backend)
-- Multi-farm / multi-tenant support
+## Implemented in v2.0.0 (enterprise hardening)
+- **Multi-tenancy** — `Farm` model; all data farm-scoped; per-farm uniqueness for
+  tag numbers and death-image hashes. Signup creates a farm + manager.
+- **Audit trail** — `AuditLog` + `record_audit()`; manager-only `GET /api/audit`.
+- **Auth hardening** — short-lived access tokens, revocable refresh tokens via
+  httpOnly cookie (`/api/auth/refresh`, `/logout`), account lockout, timing-safe
+  login, `PUT /api/auth/password`.
+- **Pagination** — `Page[T]` envelope on list endpoints.
+- **Object storage** — `app/services/storage.py` (local or S3/R2).
+- **Observability** — JSON logging + request-id middleware + optional Sentry.
+- **CSV export** — `GET /api/{animals,deaths}/export.csv`.
+- **Offline write queue** — frontend Dexie outbox with client-side SHA-256 and a
+  sync engine; `GET /api/deaths/check-hash`.
+- **Tests** — backend pytest (≥85% coverage gate) + frontend vitest/RTL +
+  Playwright E2E; CI runs bandit, pip-audit, npm audit, CodeQL.
+
+## Still not implemented
+- PDF reporting, password reset via email, SSO/OAuth, and a UI to switch storage
+  backends.

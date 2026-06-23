@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { apiFetch, ApiError } from '@/services/api';
+import { apiFetch, ApiError, downloadFile, type Page } from '@/services/api';
+import { enqueueAnimal } from '@/services/outbox';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { PawPrint, Plus, Pencil, Trash2 } from 'lucide-react';
+import { PawPrint, Plus, Pencil, Trash2, Download } from 'lucide-react';
 
 interface Animal {
   id: number;
@@ -73,20 +74,20 @@ export const AnimalManagement: React.FC = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
-  const fetchAnimals = async () => {
+  const fetchAnimals = useCallback(async () => {
     try {
-      const data = await apiFetch<Animal[]>('/api/animals', {}, user?.token);
-      setAnimals(data);
+      const data = await apiFetch<Page<Animal>>('/api/animals?limit=200');
+      setAnimals(data.items);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load animals');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAnimals();
-  }, []);
+  }, [fetchAnimals]);
 
   const filtered = animals.filter((a) => {
     if (filterStatus !== 'all' && a.status !== filterStatus) return false;
@@ -103,33 +104,44 @@ export const AnimalManagement: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.name || !addForm.animal_type) return;
+
+    const payload = {
+      name: addForm.name,
+      animal_type: addForm.animal_type,
+      tag_number: addForm.tag_number || null,
+      breed: addForm.breed || null,
+      date_of_birth: addForm.date_of_birth || null,
+      notes: addForm.notes || null,
+    };
+
+    const queueOffline = async () => {
+      await enqueueAnimal(payload, addForm.name);
+      setAddForm({ ...emptyForm });
+      setAddOpen(false);
+    };
+
     if (!online) {
-      setAddError("You're offline — this animal was NOT saved. Reconnect and try again.");
+      await queueOffline();
       return;
     }
+
     setAddLoading(true);
     setAddError(null);
     try {
-      await apiFetch<Animal>(
-        '/api/animals',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            name: addForm.name,
-            animal_type: addForm.animal_type,
-            tag_number: addForm.tag_number || null,
-            breed: addForm.breed || null,
-            date_of_birth: addForm.date_of_birth || null,
-            notes: addForm.notes || null,
-          }),
-        },
-        user?.token
-      );
+      await apiFetch<Animal>('/api/animals', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
       setAddForm({ ...emptyForm });
       setAddOpen(false);
       await fetchAnimals();
     } catch (e) {
-      setAddError(e instanceof ApiError ? e.message : 'Failed to add animal');
+      // Network failure mid-submit: queue it rather than lose the entry.
+      if (e instanceof ApiError && e.isOffline) {
+        await queueOffline();
+      } else {
+        setAddError(e instanceof ApiError ? e.message : 'Failed to add animal');
+      }
     } finally {
       setAddLoading(false);
     }
@@ -159,21 +171,17 @@ export const AnimalManagement: React.FC = () => {
     setEditLoading(true);
     setEditError(null);
     try {
-      await apiFetch<Animal>(
-        `/api/animals/${editAnimal.id}`,
-        {
-          method: 'PUT',
-          body: JSON.stringify({
-            name: editForm.name || undefined,
-            animal_type: editForm.animal_type || undefined,
-            tag_number: editForm.tag_number || null,
-            breed: editForm.breed || null,
-            date_of_birth: editForm.date_of_birth || null,
-            notes: editForm.notes || null,
-          }),
-        },
-        user?.token
-      );
+      await apiFetch<Animal>(`/api/animals/${editAnimal.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: editForm.name || undefined,
+          animal_type: editForm.animal_type || undefined,
+          tag_number: editForm.tag_number || null,
+          breed: editForm.breed || null,
+          date_of_birth: editForm.date_of_birth || null,
+          notes: editForm.notes || null,
+        }),
+      });
       setEditOpen(false);
       await fetchAnimals();
     } catch (e) {
@@ -190,7 +198,7 @@ export const AnimalManagement: React.FC = () => {
     }
     if (!confirm(`Delete ${animal.name}? This cannot be undone.`)) return;
     try {
-      await apiFetch(`/api/animals/${animal.id}`, { method: 'DELETE' }, user?.token);
+      await apiFetch(`/api/animals/${animal.id}`, { method: 'DELETE' });
       await fetchAnimals();
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Failed to delete animal');
@@ -219,9 +227,18 @@ export const AnimalManagement: React.FC = () => {
             {animals.length} total &mdash; {alive} alive, {dead} dead
           </p>
         </div>
-        <Button onClick={() => setAddOpen(true)} disabled={!online}>
-          <Plus className="h-4 w-4 mr-2" /> Add Animal
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => downloadFile('/api/animals/export.csv', 'animals.csv')}
+            disabled={!online || animals.length === 0}
+          >
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Add Animal
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -439,11 +456,8 @@ export const AnimalManagement: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={addLoading || !online || !addForm.name || !addForm.animal_type}
-              >
-                {addLoading ? 'Adding...' : 'Add Animal'}
+              <Button type="submit" disabled={addLoading || !addForm.name || !addForm.animal_type}>
+                {addLoading ? 'Adding...' : online ? 'Add Animal' : 'Save offline'}
               </Button>
             </DialogFooter>
           </form>

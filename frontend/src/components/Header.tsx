@@ -2,6 +2,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { SidebarTrigger } from './ui/sidebar';
 import { MooMetricsLogo } from './MooMetricsLogo';
+import { OutboxStatus } from './OutboxStatus';
 import { LogOut, Sun, Moon, Menu } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
@@ -27,6 +28,9 @@ export function Header({ darkMode, toggleDarkMode }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Offline write queue */}
+          <OutboxStatus />
+
           {/* Dark Mode Toggle */}
           <Button variant="ghost" size="sm" onClick={toggleDarkMode} aria-label="Toggle dark mode">
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -35,8 +39,14 @@ export function Header({ darkMode, toggleDarkMode }: HeaderProps) {
           {/* User Info */}
           {user && (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium hidden sm:block">{user.username}</span>
-              <Badge variant={user.role === 'manager' ? 'default' : 'secondary'} className="text-xs">
+              <div className="hidden sm:flex flex-col items-end leading-tight">
+                <span className="text-sm font-medium">{user.username}</span>
+                <span className="text-xs text-muted-foreground">{user.farmName}</span>
+              </div>
+              <Badge
+                variant={user.role === 'manager' ? 'default' : 'secondary'}
+                className="text-xs"
+              >
                 {user.role}
               </Badge>
             </div>

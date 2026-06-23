@@ -1,6 +1,35 @@
 # MooMetrics — Architectural Context & PWA Readiness
 
-> Last updated: 2026-04-09 | Branch: `core` | Version: 1.0.0
+> Last updated: 2026-06-22 | Branch: `main` | Version: 2.0.0
+
+---
+
+## v2.0.0 — Enterprise architecture (supersedes the notes below)
+
+The diagrams further down describe the original single-tenant, localStorage-JWT
+design. v2.0.0 changes the key layers:
+
+- **Tenancy** — a `Farm` is the tenant boundary. `User`, `Animal`, and
+  `DeathRecord` carry a non-null `farm_id`; every router query filters by
+  `current_user.farm_id`. Tag-number and death-image-hash uniqueness are
+  **per-farm** composite constraints, not global. Self-serve signup creates a
+  farm + manager; managers invite employees into their own farm.
+- **Auth** — short-lived (15 min) JWT **access token held in memory** on the
+  client (not localStorage). A revocable, hashed **refresh token** is stored
+  server-side (`refresh_tokens`) and delivered as an httpOnly/Secure/SameSite
+  cookie. `apiFetch` performs a coalesced silent `/api/auth/refresh` + replay on
+  401; `AuthContext` bootstraps the session from the cookie on load. Plus account
+  lockout, timing-safe login, and self-service password change.
+- **Storage** — image persistence goes through a `StorageBackend` protocol
+  (`app/services/storage.py`): `local` disk (dev / single node) or `s3` (AWS S3 /
+  Cloudflare R2) for durable, horizontally-scalable production.
+- **Audit** — append-only `audit_logs` written by `record_audit()` on every
+  mutating action and sign-in; manager-only paginated `GET /api/audit`.
+- **Offline** — a Dexie IndexedDB **outbox** queues animal/death writes captured
+  offline (images stored as Blobs, SHA-256 hashed client-side) and a sync engine
+  replays them on reconnect with permanent-vs-transient error handling.
+- **Observability** — JSON logging + `X-Request-ID` middleware + optional Sentry.
+- **Lists** — paginated via a `Page[T]` envelope `{ items, total, page, limit }`.
 
 ---
 

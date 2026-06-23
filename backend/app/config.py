@@ -5,15 +5,24 @@ Configuration management for the backend API.
 from functools import lru_cache
 from typing import Literal
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=False, extra="ignore"
+    )
+
     # Environment
     environment: Literal["development", "staging", "production"] = Field(
         default="development", description="Application environment"
+    )
+
+    # Startup behaviour — disabled in tests so they can manage their own schema.
+    run_db_migrations: bool = Field(
+        default=True, description="Run Alembic migrations on application startup"
     )
 
     # Server
@@ -27,8 +36,23 @@ class Settings(BaseSettings):
         default="change-me-in-production", description="Secret key for JWT signing"
     )
     jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
-    jwt_expire_minutes: int = Field(
-        default=480, description="JWT expiry in minutes (8 hours)"
+    jwt_issuer: str = Field(default="moometrics", description="JWT issuer claim")
+    access_token_expire_minutes: int = Field(
+        default=15, description="Short-lived access-token lifetime (minutes)"
+    )
+    refresh_token_expire_days: int = Field(
+        default=30, description="Refresh-token lifetime (days)"
+    )
+    refresh_cookie_name: str = Field(
+        default="moometrics_refresh", description="Refresh-token cookie name"
+    )
+
+    # Brute-force protection
+    max_failed_logins: int = Field(
+        default=5, description="Failed logins before an account is locked"
+    )
+    lockout_minutes: int = Field(
+        default=15, description="How long an account stays locked (minutes)"
     )
 
     # Database
@@ -41,15 +65,42 @@ class Settings(BaseSettings):
         default="uploads/deaths", description="Directory for death report images"
     )
 
+    # Object storage (death-report images)
+    storage_backend: Literal["local", "s3"] = Field(
+        default="local", description="Image storage backend: local disk or S3/R2"
+    )
+    s3_bucket: str = Field(default="", description="S3/R2 bucket name")
+    s3_endpoint_url: str = Field(
+        default="", description="S3-compatible endpoint (set for Cloudflare R2)"
+    )
+    s3_region: str = Field(default="auto", description="S3/R2 region")
+    s3_access_key_id: str = Field(default="", description="S3/R2 access key id")
+    s3_secret_access_key: str = Field(default="", description="S3/R2 secret access key")
+    s3_public_base_url: str = Field(
+        default="",
+        description="Public base URL for served objects (CDN / R2 public bucket)",
+    )
+
     # Initial admin account (seeded on first startup if no users exist)
     admin_username: str = Field(default="admin", description="Seeded admin username")
     admin_initial_password: str = Field(
         default="admin123",
         description="Seeded admin password — MUST be overridden in production",
     )
+    default_farm_name: str = Field(
+        default="Default Farm",
+        description="Name of the farm created alongside the seeded admin",
+    )
 
-    # Logging
+    # Logging & error tracking
     log_level: str = Field(default="INFO", description="Logging level")
+    log_format: Literal["json", "console"] = Field(
+        default="console", description="Log output format (json in production)"
+    )
+    sentry_dsn: str = Field(default="", description="Sentry DSN (empty = disabled)")
+    sentry_traces_sample_rate: float = Field(
+        default=0.0, description="Sentry performance trace sample rate (0..1)"
+    )
 
     @property
     def is_production(self) -> bool:
@@ -74,10 +125,6 @@ class Settings(BaseSettings):
                     "ADMIN_INITIAL_PASSWORD must be set to a strong value in "
                     "production (the default 'admin123' is not allowed)"
                 )
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 @lru_cache()

@@ -8,77 +8,108 @@ on:
 
 jobs:
   backend:
-    name: Backend Lint & Test
+    name: Backend — lint, security, tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: backend/requirements.txt
-
       - run: pip install -r requirements.txt
 
-      - name: Lint with flake8
+      - name: Lint (flake8)
         run: flake8 app/ --count --show-source --statistics
 
-      - name: Check formatting with black
-        run: black --check app/
+      - name: Format check (black)
+        run: black --check app/ tests/
+
+      - name: Security scan (bandit)
+        run: bandit -r app/ -ll
+
+      - name: Dependency audit (pip-audit)
+        run: pip-audit
+
+      - name: Tests + coverage gate
+        run: pytest --cov=app --cov-report=term-missing --cov-fail-under=85
 
   frontend:
-    name: Frontend Lint & Build
+    name: Frontend — lint, typecheck, tests, build
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
       - run: npm ci
 
-      # Advisory for launch: the repo carries a pre-existing prettier/
-      # exhaustive-deps backlog (lint was previously non-functional under
-      # ESLint 9). Clear it week-1, then drop continue-on-error.
-      - name: Lint (advisory)
+      - name: Lint
         run: npm run lint
-        continue-on-error: true
 
-      # Advisory for launch: strict-TS errors are tracked as a week-1 cleanup,
-      # so a failure here must not block the pipeline yet. Flip to blocking
-      # once the backlog is cleared.
-      - name: Type-check (advisory)
+      - name: Type-check
         run: npm run typecheck
-        continue-on-error: true
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Dependency audit (production)
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Build
         run: npm run build
         env:
           VITE_BACKEND_URL: https://api.example.com
 
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    # Advisory until selectors/timing are validated against a hosted preview.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Start backend (sqlite, dev)
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 >/tmp/backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/health && break || sleep 1
+          done
+
+      - name: Run Playwright smoke
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run e2e
+
   docker:
-    name: Docker Build
+    name: Docker build
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     if: github.ref == 'refs/heads/main'
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Build backend image
         run: docker build -t moometrics-backend ./backend
-
       - name: Build frontend image
         run: docker build -t moometrics-frontend ./frontend --build-arg VITE_BACKEND_URL=https://api.example.com

@@ -48,6 +48,20 @@ services:
       # Relative path under the persistent disk mount above.
       - key: UPLOAD_DIR
         value: uploads/deaths
+      # Image storage: 'local' (persistent disk) or 's3' (set S3_* below for R2).
+      - key: STORAGE_BACKEND
+        value: local
+      # Short-lived access tokens + revocable refresh cookie.
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "15"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "30"
+      # Structured JSON logs for aggregation.
+      - key: LOG_FORMAT
+        value: json
+      # Optional error tracking — set in the dashboard to enable (no-op if empty).
+      - key: SENTRY_DSN
+        sync: false
       - key: PYTHON_VERSION
         value: "3.12.0"
 
