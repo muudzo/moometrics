@@ -8,7 +8,7 @@ from app.config import Settings
 def _prod(**over):
     base = dict(
         environment="production",
-        jwt_secret="a-strong-secret",
+        jwt_secret="a-strong-secret-of-sufficient-length-1234567890",
         database_url="postgresql://u:p@h/db",
         admin_initial_password="A-strong-pass1",
     )
@@ -19,6 +19,11 @@ def _prod(**over):
 def test_production_rejects_default_jwt_secret():
     with pytest.raises(ValueError, match="JWT_SECRET"):
         Settings(**_prod(jwt_secret="change-me-in-production"))
+
+
+def test_production_rejects_short_jwt_secret():
+    with pytest.raises(ValueError, match="at least 32 characters"):
+        Settings(**_prod(jwt_secret="too-short"))
 
 
 def test_production_rejects_sqlite():
