@@ -39,14 +39,20 @@ Cloudflare anywhere in the stack:
 
 ### 3. API → Render (free)
 
-1. `render blueprint apply` (or connect the repo in the Render dashboard).
-   [render.yaml](../render.yaml) provisions `moometrics-api` on the **free**
-   plan. If Blueprint apply asks for a card, skip it: dashboard → **New →
-   Web Service** → connect the repo with Root Directory `backend`, build
-   `pip install -r requirements.txt`, start
-   `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, health check `/health`,
-   plan **Free** — then add the same env vars by hand.
-2. Fill the dashboard-set env vars: `DATABASE_URL` (step 1),
+> Render **Blueprints require payment info on file even for free services** —
+> do NOT use `render blueprint apply` on a card-free account. Create the
+> service manually instead; the manual path never asks for a card.
+> [render.yaml](../render.yaml) stays as the reference for the exact settings.
+
+1. Dashboard → **New → Web Service** → connect the GitHub repo. Settings:
+   - **Root Directory** `backend`, **Runtime** Python
+   - **Build** `pip install -r requirements.txt`
+   - **Start** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Health check path** `/health`, **Instance type: Free**
+2. Add the env vars from [render.yaml](../render.yaml) by hand — the fixed
+   values (`ENVIRONMENT=production`, `STORAGE_BACKEND=s3`, token lifetimes,
+   `LOG_FORMAT=json`, `PYTHON_VERSION=3.12.0`), a long random `JWT_SECRET`
+   (≥32 chars — `openssl rand -hex 32`), plus: `DATABASE_URL` (step 1),
    `S3_BUCKET` / `S3_ENDPOINT_URL` / `S3_REGION` / `S3_ACCESS_KEY_ID` /
    `S3_SECRET_ACCESS_KEY` (step 2), and **`ADMIN_INITIAL_PASSWORD`** — a strong
    password; the app refuses to boot in production without it (seeds the first

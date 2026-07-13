@@ -6,11 +6,14 @@
 #   Frontend -> Vercel Hobby, from frontend/vercel.json (root dir `frontend`,
 #               VITE_BACKEND_URL = this API's https origin)
 #
-# Deploy order: create Neon DB + B2 bucket -> apply this blueprint and fill the
-# sync:false vars -> deploy Vercel with the API URL -> set FRONTEND_URL below
-# to the Vercel domain (drives CORS + the cross-site refresh cookie).
-# If Blueprint apply ever asks for a card, create the service manually instead:
-# dashboard -> New Web Service -> same settings (see docs/RUNBOOK.md).
+# !! Render Blueprints require payment info on file EVEN for free services.
+# On a card-free account, do NOT `render blueprint apply` — create the service
+# manually (dashboard -> New -> Web Service) with the settings below; the
+# manual path never asks for a card. Full walkthrough: docs/RUNBOOK.md.
+#
+# Deploy order: create Neon DB + B2 bucket -> create the web service and fill
+# the sync:false vars -> deploy Vercel with the API URL -> set FRONTEND_URL
+# below to the Vercel domain (drives CORS + the cross-site refresh cookie).
 #
 # Free-tier trade-offs (documented in docs/RUNBOOK.md):
 #   - service spins down after ~15 min idle; first request takes ~1 min
