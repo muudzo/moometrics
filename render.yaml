@@ -1,13 +1,15 @@
-# Render Blueprint — the single canonical deploy path for MooMetrics.
+# Render Blueprint — deploys the MooMetrics BACKEND (API + PostgreSQL).
 # Deploy with `render blueprint apply` (or via the Render dashboard).
 # Docs: https://docs.render.com/blueprint-spec
 #
-# This is the ONE supported deploy path. docker-compose.yml is for local
-# development only; frontend/vercel.json is NOT used (kept out of the deploy).
+# The FRONTEND deploys to Vercel from frontend/vercel.json (import the repo
+# in Vercel with root directory `frontend`, set VITE_BACKEND_URL to this
+# API's https origin). docker-compose.yml remains local-development only.
+# Deploy order: apply this blueprint first -> deploy Vercel with the API URL
+# -> set FRONTEND_URL below to the Vercel domain (CORS + refresh cookie).
 #
-# !! VALIDATE ON RENDER: plan identifiers and cross-service `fromService`
-#    wiring should be confirmed in the Render dashboard on first apply —
-#    they are the one part of this file not verifiable locally.
+# !! VALIDATE ON RENDER: plan identifiers should be confirmed in the Render
+#    dashboard on first apply — they are not verifiable locally.
 
 services:
   # --- Backend API (FastAPI) ---
@@ -39,12 +41,11 @@ services:
       # boot in production if this is left at the default.
       - key: ADMIN_INITIAL_PASSWORD
         sync: false
-      # Auto-wired to the static frontend's host; CORS normalizes the scheme.
+      # The Vercel frontend's https origin (e.g. https://moometrics.vercel.app).
+      # Set in the dashboard after the first Vercel deploy — drives CORS and
+      # the cross-site refresh cookie (SameSite=None; Secure in production).
       - key: FRONTEND_URL
-        fromService:
-          name: moometrics-web
-          type: web
-          property: host
+        sync: false
       # Relative path under the persistent disk mount above.
       - key: UPLOAD_DIR
         value: uploads/deaths
@@ -64,33 +65,6 @@ services:
         sync: false
       - key: PYTHON_VERSION
         value: "3.12.0"
-
-  # --- Frontend (static SPA + PWA) ---
-  - type: web
-    name: moometrics-web
-    runtime: static
-    rootDir: frontend
-    # VITE_BACKEND_URL is baked at build time, so we construct the full
-    # https origin from the backend service host here.
-    buildCommand: npm ci && VITE_BACKEND_URL="https://$BACKEND_HOST" npm run build
-    staticPublishPath: build
-    envVars:
-      - key: BACKEND_HOST
-        fromService:
-          name: moometrics-api
-          type: web
-          property: host
-    routes:
-      # SPA fallback — only applies when no built asset matches the path,
-      # so hashed assets and the PWA service worker are still served directly.
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    headers:
-      # Never cache the service worker or its registration shell.
-      - path: /sw.js
-        name: Cache-Control
-        value: "no-cache, no-store, must-revalidate"
 
 databases:
   - name: moometrics-db
