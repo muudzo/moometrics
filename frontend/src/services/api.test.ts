@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { apiFetch, ApiError, setAccessToken } from '@/services/api';
+import { apiFetch, ApiError, setAccessToken, UNAUTHORIZED_EVENT } from '@/services/api';
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -52,5 +52,40 @@ describe('apiFetch', () => {
       status: 401,
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces the server detail on a login 401 instead of "session expired"', async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(401, { detail: 'Invalid username or password' }));
+    await expect(apiFetch('/api/auth/login', { method: 'POST' })).rejects.toMatchObject({
+      status: 401,
+      message: 'Invalid username or password',
+    });
+  });
+
+  it('does not dispatch the unauthorized (logout) event on a login 401', async () => {
+    global.fetch = vi.fn().mockResolvedValue(jsonResponse(401, { detail: 'bad creds' }));
+    const onUnauthorized = vi.fn();
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    await apiFetch('/api/auth/login', { method: 'POST' }).catch(() => {});
+    window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it('throws "session expired" and dispatches logout when refresh fails on a 401', async () => {
+    setAccessToken('expired');
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(401, { detail: 'expired' })) // original
+      .mockResolvedValueOnce(jsonResponse(401, { detail: 'no cookie' })); // refresh fails
+    const onUnauthorized = vi.fn();
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    await expect(apiFetch('/api/animals')).rejects.toMatchObject({
+      status: 401,
+      message: 'Your session has expired. Please sign in again.',
+    });
+    window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
 });
