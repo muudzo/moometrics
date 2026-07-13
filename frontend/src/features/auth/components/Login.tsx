@@ -41,7 +41,9 @@ export const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
-    await login(username.trim(), password);
+    // AuthContext surfaces the failure via `error`; catch here only to avoid
+    // an unhandled promise rejection in the console.
+    await login(username.trim(), password).catch(() => {});
   };
 
   const handleSignup = async (e: React.FormEvent) => {

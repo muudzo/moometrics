@@ -131,15 +131,17 @@ function refreshSession(): Promise<boolean> {
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   let res = await rawFetch(path, options);
 
-  // On expiry, try a one-shot silent refresh then replay the request.
+  // A 401 from an auth endpoint (e.g. wrong password on login) is a normal
+  // request failure — fall through so the server's message is surfaced. Only
+  // a 401 elsewhere means an expired session: silently refresh, replay once,
+  // and log out if the refresh itself fails.
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     if (await refreshSession()) res = await rawFetch(path, options);
-  }
-
-  if (res.status === 401) {
-    accessToken = null;
-    window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
-    throw new ApiError(401, 'Your session has expired. Please sign in again.');
+    if (res.status === 401) {
+      accessToken = null;
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+      throw new ApiError(401, 'Your session has expired. Please sign in again.');
+    }
   }
 
   if (!res.ok) {
