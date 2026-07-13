@@ -53,6 +53,26 @@ export async function restoreSession(): Promise<SessionInfo | null> {
   }
 }
 
+/**
+ * FastAPI returns `detail` as a string for HTTPExceptions but as a list of
+ * error objects for 422 validation failures — flatten the latter into a
+ * human-readable message (dropping pydantic's "Value error, " prefix).
+ */
+function formatErrorDetail(detail: unknown): string | null {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((entry) =>
+        entry && typeof entry === 'object' && 'msg' in entry
+          ? String((entry as { msg: unknown }).msg).replace(/^Value error, /, '')
+          : null
+      )
+      .filter((msg): msg is string => msg !== null);
+    if (messages.length > 0) return messages.join('; ');
+  }
+  return null;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -146,7 +166,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.detail ?? `HTTP ${res.status}`);
+    throw new ApiError(res.status, formatErrorDetail(body.detail) ?? `HTTP ${res.status}`);
   }
 
   if (res.status === 204) return undefined as T;
