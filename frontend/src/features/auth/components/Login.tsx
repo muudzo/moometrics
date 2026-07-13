@@ -50,12 +50,24 @@ export const Login: React.FC = () => {
     e.preventDefault();
     setSignupError(null);
 
+    // Mirror the backend schema rules so users get instant feedback instead
+    // of a 422 round-trip (the server remains the source of truth).
+    if (!/^[A-Za-z0-9_]{3,32}$/.test(username.trim())) {
+      setSignupError('Username must be 3–32 characters: letters, digits, and underscores only');
+      return;
+    }
     if (password !== confirm) {
       setSignupError('Passwords do not match');
       return;
     }
     if (password.length < 8) {
       setSignupError('Password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+      setSignupError(
+        'Password needs at least one uppercase letter, one lowercase letter, and one digit'
+      );
       return;
     }
     if (!farmName.trim()) {

@@ -24,6 +24,24 @@ describe('apiFetch', () => {
     await expect(apiFetch('/x')).rejects.toMatchObject({ status: 409, message: 'Tag taken' });
   });
 
+  it('formats a FastAPI 422 validation detail array into a readable message', async () => {
+    global.fetch = vi.fn().mockResolvedValue(
+      jsonResponse(422, {
+        detail: [
+          {
+            type: 'value_error',
+            loc: ['body', 'password'],
+            msg: 'Value error, Password must contain at least one uppercase letter',
+          },
+        ],
+      })
+    );
+    await expect(apiFetch('/api/auth/signup', { method: 'POST' })).rejects.toMatchObject({
+      status: 422,
+      message: 'Password must contain at least one uppercase letter',
+    });
+  });
+
   it('reports a network failure as an offline ApiError (status 0)', async () => {
     global.fetch = vi.fn().mockRejectedValue(new TypeError('network down'));
     const err = await apiFetch('/x').catch((e: unknown) => e);
