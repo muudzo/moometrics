@@ -116,6 +116,10 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "JWT_SECRET must be set to a strong value in production"
                 )
+            if len(self.jwt_secret) < 32:
+                raise ValueError(
+                    "JWT_SECRET must be at least 32 characters in production"
+                )
             if self.database_url.startswith("sqlite"):
                 raise ValueError(
                     "SQLite is not supported in production — use PostgreSQL"

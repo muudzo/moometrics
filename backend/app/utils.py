@@ -10,6 +10,19 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+# Leading characters a spreadsheet may interpret as a formula. Values starting
+# with one of these are prefixed with a single quote to neutralize CSV injection
+# (a.k.a. formula injection) when the export is opened in Excel / Google Sheets.
+_CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: object) -> str:
+    """Escape values that a spreadsheet would otherwise evaluate as a formula."""
+    text = "" if value is None else str(value)
+    if text and text[0] in _CSV_FORMULA_PREFIXES:
+        return "'" + text
+    return text
+
 
 def csv_response(
     filename: str, header: Sequence[str], rows: Iterable[Sequence[object]]
@@ -24,7 +37,7 @@ def csv_response(
         for row in rows:
             buffer.seek(0)
             buffer.truncate(0)
-            writer.writerow(row)
+            writer.writerow([_csv_safe(cell) for cell in row])
             yield buffer.getvalue()
 
     return StreamingResponse(
