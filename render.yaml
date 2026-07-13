@@ -1,15 +1,23 @@
-# Render Blueprint — deploys the MooMetrics BACKEND (API + PostgreSQL).
-# Deploy with `render blueprint apply` (or via the Render dashboard).
-# Docs: https://docs.render.com/blueprint-spec
+# Render Blueprint — deploys the MooMetrics BACKEND API on the FREE tier.
+# No credit card required anywhere in this stack:
+#   API      -> Render free web service (this file)
+#   Database -> Neon free Postgres  (https://neon.tech — DATABASE_URL below)
+#   Images   -> Backblaze B2 free 10GB, S3-compatible (S3_* vars below)
+#   Frontend -> Vercel Hobby, from frontend/vercel.json (root dir `frontend`,
+#               VITE_BACKEND_URL = this API's https origin)
 #
-# The FRONTEND deploys to Vercel from frontend/vercel.json (import the repo
-# in Vercel with root directory `frontend`, set VITE_BACKEND_URL to this
-# API's https origin). docker-compose.yml remains local-development only.
-# Deploy order: apply this blueprint first -> deploy Vercel with the API URL
-# -> set FRONTEND_URL below to the Vercel domain (CORS + refresh cookie).
+# Deploy order: create Neon DB + B2 bucket -> apply this blueprint and fill the
+# sync:false vars -> deploy Vercel with the API URL -> set FRONTEND_URL below
+# to the Vercel domain (drives CORS + the cross-site refresh cookie).
+# If Blueprint apply ever asks for a card, create the service manually instead:
+# dashboard -> New Web Service -> same settings (see docs/RUNBOOK.md).
 #
-# !! VALIDATE ON RENDER: plan identifiers should be confirmed in the Render
-#    dashboard on first apply — they are not verifiable locally.
+# Free-tier trade-offs (documented in docs/RUNBOOK.md):
+#   - service spins down after ~15 min idle; first request takes ~1 min
+#   - no persistent disk, hence external Postgres + object storage
+#   - no automated DB backups — run periodic manual `pg_dump`
+# For irreplaceable production farm data, the paid path (starter plan +
+# managed Postgres with daily backups, ~$14/mo) remains the responsible option.
 
 services:
   # --- Backend API (FastAPI) ---
@@ -17,26 +25,20 @@ services:
     name: moometrics-api
     runtime: python
     region: oregon
-    plan: starter            # paid tier: persistent disk + always-on
+    plan: free               # no card; spins down after ~15 min idle
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
-    # Persists uploaded death-report images across deploys. Mounted at the
-    # backend working dir's `uploads/` so it matches StaticFiles + UPLOAD_DIR.
-    disk:
-      name: moometrics-uploads
-      mountPath: /opt/render/project/src/backend/uploads
-      sizeGB: 1
     envVars:
       - key: ENVIRONMENT
         value: production
       - key: JWT_SECRET
         generateValue: true
+      # Neon connection string (postgresql://...@...neon.tech/...?sslmode=require).
+      # Free instances have no disk, so the database must live off-box.
       - key: DATABASE_URL
-        fromDatabase:
-          name: moometrics-db
-          property: connectionString
+        sync: false
       # Operator sets a strong password in the dashboard; the app refuses to
       # boot in production if this is left at the default.
       - key: ADMIN_INITIAL_PASSWORD
@@ -46,12 +48,24 @@ services:
       # the cross-site refresh cookie (SameSite=None; Secure in production).
       - key: FRONTEND_URL
         sync: false
-      # Relative path under the persistent disk mount above.
-      - key: UPLOAD_DIR
-        value: uploads/deaths
-      # Image storage: 'local' (persistent disk) or 's3' (set S3_* below for R2).
+      # Death-report images go to S3-compatible object storage (Backblaze B2
+      # free tier). The bucket can stay PRIVATE: with no S3_PUBLIC_BASE_URL
+      # set, the app serves images via time-limited presigned URLs.
       - key: STORAGE_BACKEND
-        value: local
+        value: s3
+      - key: S3_BUCKET
+        sync: false
+      # B2 S3 endpoint, e.g. https://s3.us-west-004.backblazeb2.com
+      - key: S3_ENDPOINT_URL
+        sync: false
+      # B2 region from the endpoint, e.g. us-west-004
+      - key: S3_REGION
+        sync: false
+      # B2 application key pair (keyID / applicationKey), scoped to the bucket.
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
       # Short-lived access tokens + revocable refresh cookie.
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "15"
@@ -65,12 +79,3 @@ services:
         sync: false
       - key: PYTHON_VERSION
         value: "3.12.0"
-
-databases:
-  - name: moometrics-db
-    # Paid plan → automated daily backups + point-in-time recovery. Farm
-    # records are irreplaceable; the free tier has NO backups and expires.
-    plan: basic-256mb
-    region: oregon
-    databaseName: moometrics
-    user: moometrics
