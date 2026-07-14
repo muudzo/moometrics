@@ -1,7 +1,7 @@
 // Port of backend/app/routers/animals.py.
 import { Hono } from "hono";
-import { z } from "zod";
 import { getDb, isUniqueViolation } from "../../_shared/db.ts";
+import { parsePagination } from "../../_shared/pagination.ts";
 import {
   csvResponse,
   jsonError,
@@ -45,11 +45,6 @@ interface AnimalRow {
   updated_at: Date;
 }
 
-const PaginationQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
-});
-
 const UPDATABLE_FIELDS = [
   "name",
   "animal_type",
@@ -83,14 +78,9 @@ async function getOwnedAnimal(
 
 animalsRouter.get("/", async (c) => {
   const user = c.get("user");
-  const parsedQuery = PaginationQuerySchema.safeParse({
-    page: c.req.query("page"),
-    limit: c.req.query("limit"),
-  });
-  if (!parsedQuery.success) {
-    return jsonError(c, 422, firstZodError(parsedQuery));
-  }
-  const { page, limit } = parsedQuery.data;
+  const paged = parsePagination(c);
+  if (!paged.ok) return jsonError(c, 422, paged.error);
+  const { page, limit, offset } = paged.pagination;
 
   const sql = getDb();
   const [{ count }] = await sql<{ count: string }[]>`
@@ -103,7 +93,7 @@ animalsRouter.get("/", async (c) => {
     from animals
     where farm_id = ${user.farm_id}
     order by created_at desc
-    offset ${(page - 1) * limit} limit ${limit}
+    offset ${offset} limit ${limit}
   `;
   return c.json(pageEnvelope(items, parseInt(count, 10), page, limit));
 });

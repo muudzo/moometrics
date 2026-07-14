@@ -194,6 +194,65 @@ Deno.test("cross-tenant isolation: manager cannot delete a user in another farm 
   await cleanupUser(managerA.username);
 });
 
+Deno.test("manager can delete an employee who has logged in (sessions cleared, no FK 500)", async () => {
+  // Regression: refresh_tokens.user_id FK made any user who had ever logged
+  // in undeletable — the delete surfaced a raw FK violation as a 500.
+  const ip = crypto.randomUUID();
+  const manager = await signupManager(ip, "fkmgr");
+  const employee = await registerEmployee(ip, manager.token, "fkemp");
+  await loginUser(ip, employee.username); // issues a refresh token row
+
+  const res = await app.request(`/api/users/${employee.id}`, {
+    method: "DELETE",
+    headers: testHeaders(ip, { Authorization: `Bearer ${manager.token}` }),
+  });
+  assertEquals(res.status, 204);
+
+  const sql = getDb();
+  const [tokenRow] = await sql<
+    { id: number }[]
+  >`select id from refresh_tokens where user_id = ${employee.id}`;
+  assertEquals(tokenRow, undefined);
+
+  await cleanupUser(manager.username);
+});
+
+Deno.test("deleting a user who recorded animals returns 409, not 500, and keeps the records", async () => {
+  const ip = crypto.randomUUID();
+  const manager = await signupManager(ip, "histmgr");
+  const employee = await registerEmployee(ip, manager.token, "histemp");
+
+  const sql = getDb();
+  const [self] = await sql<
+    { id: number; farm_id: number }[]
+  >`select id, farm_id from users where username = ${manager.username}`;
+  const [animal] = await sql<{ id: number }[]>`
+    insert into animals (farm_id, name, animal_type, status, added_by_user_id)
+    values (${self.farm_id}, 'HistoryCow', 'cattle', 'alive', ${employee.id})
+    returning id
+  `;
+
+  const res = await app.request(`/api/users/${employee.id}`, {
+    method: "DELETE",
+    headers: testHeaders(ip, { Authorization: `Bearer ${manager.token}` }),
+  });
+  assertEquals(res.status, 409);
+
+  // Neither the user nor their recorded animal was touched.
+  const [stillThere] = await sql<
+    { id: number }[]
+  >`select id from users where id = ${employee.id}`;
+  assert(stillThere, "user with history must not have been deleted");
+  const [animalStillThere] = await sql<
+    { id: number }[]
+  >`select id from animals where id = ${animal.id}`;
+  assert(animalStillThere, "recorded animal must not have been deleted");
+
+  await sql`delete from animals where id = ${animal.id}`;
+  await cleanupUser(employee.username);
+  await cleanupUser(manager.username);
+});
+
 Deno.test("deleting a nonexistent user returns 404", async () => {
   const ip = crypto.randomUUID();
   const manager = await signupManager(ip, "notfound");

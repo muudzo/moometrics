@@ -24,9 +24,9 @@ export function corsOrigins(): string[] {
 export function corsMiddleware(): MiddlewareHandler {
   const origins = corsOrigins();
   return cors({
-    origin: (
-      origin: string,
-    ) => (origins.includes(origin) ? origin : origins[0]),
+    // Disallowed origins get no Access-Control-Allow-Origin header at all
+    // (browser blocks), rather than being told the allowed origin.
+    origin: (origin: string) => (origins.includes(origin) ? origin : null),
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],

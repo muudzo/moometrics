@@ -24,6 +24,22 @@ export async function checkRateLimit(
   const windowStart = new Date(
     Math.floor(Date.now() / (windowSeconds * 1000)) * windowSeconds * 1000,
   );
+  // Opportunistic GC piggybacked on the hot path (no cron available): expired
+  // windows for this bucket are dead weight, and the delete rides the same
+  // (bucket, window_start) PK index as the upsert.
+  await sql`
+    delete from rate_limit_hits
+    where bucket = ${bucket} and window_start < ${windowStart}
+  `;
+  // The per-bucket delete never cleans buckets that don't come back (one-off
+  // IPs), so occasionally sweep everything stale. The table stays small
+  // precisely because this runs, making the unindexed scan negligible.
+  if (Math.random() < 0.02) {
+    await sql`
+      delete from rate_limit_hits
+      where window_start < now() - interval '1 day'
+    `;
+  }
   const [row] = await sql<{ hits: number }[]>`
     insert into rate_limit_hits (bucket, window_start, hits)
     values (${bucket}, ${windowStart}, 1)

@@ -8,6 +8,7 @@
 // router exactly.
 import { Hono } from "hono";
 import { getDb, isUniqueViolation } from "../../_shared/db.ts";
+import { parsePagination } from "../../_shared/pagination.ts";
 import {
   csvResponse,
   jsonError,
@@ -79,25 +80,7 @@ export interface DeathsRouterDeps {
   resolveUrl?: typeof signedUrl;
 }
 
-const PAGE_MIN = 1;
-const LIMIT_MIN = 1;
-const LIMIT_MAX = 200;
-const LIMIT_DEFAULT = 50;
 const HASH_LENGTH = 64;
-
-function parsePage(raw: string | undefined): number | null {
-  if (raw === undefined) return 1;
-  const n = Number(raw);
-  if (!Number.isInteger(n) || n < PAGE_MIN) return null;
-  return n;
-}
-
-function parseLimit(raw: string | undefined): number | null {
-  if (raw === undefined) return LIMIT_DEFAULT;
-  const n = Number(raw);
-  if (!Number.isInteger(n) || n < LIMIT_MIN || n > LIMIT_MAX) return null;
-  return n;
-}
 
 export function createDeathsRouter(deps: DeathsRouterDeps = {}): Hono {
   const saveFn = deps.saveFn ?? saveObject;
@@ -171,22 +154,9 @@ export function createDeathsRouter(deps: DeathsRouterDeps = {}): Hono {
 
   router.get("", requireAuth, async (c) => {
     const user = c.get("user");
-    const page = parsePage(c.req.query("page"));
-    if (page === null) {
-      return jsonError(
-        c,
-        422,
-        "page: Input should be greater than or equal to 1",
-      );
-    }
-    const limit = parseLimit(c.req.query("limit"));
-    if (limit === null) {
-      return jsonError(
-        c,
-        422,
-        `limit: Input should be between ${LIMIT_MIN} and ${LIMIT_MAX}`,
-      );
-    }
+    const paged = parsePagination(c);
+    if (!paged.ok) return jsonError(c, 422, paged.error);
+    const { page, limit, offset } = paged.pagination;
 
     const sql = getDb();
     const scopeFilter = user.role !== "manager"
@@ -203,7 +173,7 @@ export function createDeathsRouter(deps: DeathsRouterDeps = {}): Hono {
       where farm_id = ${user.farm_id}
       ${scopeFilter}
       order by created_at desc
-      offset ${(page - 1) * limit} limit ${limit}
+      offset ${offset} limit ${limit}
     `;
     const items = await Promise.all(records.map((r) => toResponse(r)));
     return c.json(pageEnvelope(items, count, page, limit));

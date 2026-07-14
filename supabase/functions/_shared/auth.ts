@@ -119,6 +119,14 @@ export async function issueRefreshToken(userId: number): Promise<string> {
   const expiresAt = new Date(
     Date.now() + settings.refreshTokenExpireDays * 86400 * 1000,
   );
+  // Opportunistic GC: revoked/expired rows can never authenticate again (the
+  // hash lookup treats them identically to a missing row), so sweep the
+  // user's dead tokens here rather than letting the table grow without bound.
+  // Piggybacked on issuance to avoid needing a cron.
+  await sql`
+    delete from refresh_tokens
+    where user_id = ${userId} and (revoked = true or expires_at < now())
+  `;
   await sql`
     insert into refresh_tokens (user_id, token_hash, expires_at, revoked)
     values (${userId}, ${await hashToken(raw)}, ${expiresAt}, false)
@@ -197,11 +205,15 @@ export const requireAuth: MiddlewareHandler = async (c, next) => {
   if (!claims) {
     return jsonError(c, 401, "Could not validate credentials");
   }
+  // A non-numeric sub would serialize as NaN and blow up in the driver as a
+  // 500; treat it as the credential failure it is.
+  const userId = parseInt(claims.sub, 10);
+  if (Number.isNaN(userId)) {
+    return jsonError(c, 401, "Could not validate credentials");
+  }
   const sql = getDb();
   const [user] = await sql<AuthUser[]>`
-    select id, username, role, farm_id from users where id = ${
-    parseInt(claims.sub, 10)
-  }
+    select id, username, role, farm_id from users where id = ${userId}
   `;
   if (!user) {
     return jsonError(c, 401, "Could not validate credentials");

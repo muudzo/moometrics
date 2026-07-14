@@ -94,7 +94,16 @@ authRouter.post("/login", rateLimit("login", 5, 60), async (c) => {
 
   if (!user || !passwordOk) {
     if (user) {
-      const attempts = user.failed_login_attempts + 1;
+      // Atomic increment: concurrent isolates each get a distinct value back,
+      // so parallel failed attempts can't undercount the way a read-modify-
+      // write of the earlier-selected row would.
+      const [{ failed_login_attempts: attempts }] = await sql<
+        { failed_login_attempts: number }[]
+      >`
+        update users set failed_login_attempts = failed_login_attempts + 1
+        where id = ${user.id}
+        returning failed_login_attempts
+      `;
       if (attempts >= getSettings().maxFailedLogins) {
         const lockedUntil = new Date(
           Date.now() + getSettings().lockoutMinutes * 60_000,
@@ -110,8 +119,6 @@ authRouter.post("/login", rateLimit("login", 5, 60), async (c) => {
           entityType: "user",
           entityId: user.id,
         });
-      } else {
-        await sql`update users set failed_login_attempts = ${attempts} where id = ${user.id}`;
       }
     }
     return jsonError(c, 401, INVALID_CREDENTIALS);

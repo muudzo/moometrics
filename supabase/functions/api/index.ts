@@ -13,6 +13,20 @@ import { auditRouter } from "./routers/audit.ts";
 
 const app = new Hono();
 
+// Unhandled errors bypass the securityHeaders middleware (the exception
+// propagates past its post-next() header writes), so headers are re-applied
+// here. The body stays a generic {"detail": ...} — never the error message,
+// which can carry table/constraint names from Postgres.
+app.onError((err, c) => {
+  console.error("Unhandled error:", err);
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
+  return c.json({ detail: "Internal server error" }, 500);
+});
+
+// Match FastAPI's JSON 404 shape instead of Hono's default text/plain body.
+app.notFound((c) => c.json({ detail: "Not Found" }, 404));
+
 app.use("*", corsMiddleware());
 app.use("*", securityHeaders);
 
