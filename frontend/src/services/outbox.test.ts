@@ -7,7 +7,13 @@ vi.mock('@/services/api', async (importActual) => {
 });
 
 import { apiFetch, ApiError } from '@/services/api';
-import { outboxDB, enqueueAnimal, drainOutbox, listOutbox } from '@/services/outbox';
+import {
+  outboxDB,
+  enqueueAnimal,
+  enqueueFeedTransaction,
+  drainOutbox,
+  listOutbox,
+} from '@/services/outbox';
 
 const mockedApiFetch = apiFetch as unknown as ReturnType<typeof vi.fn>;
 
@@ -59,5 +65,42 @@ describe('offline outbox', () => {
     const items = await listOutbox();
     expect(items).toHaveLength(1);
     expect(items[0].status).toBe('pending');
+  });
+
+  it('enqueues a feed transaction with a client_txn_id baked in at enqueue time', async () => {
+    await enqueueFeedTransaction(7, -3, 'Morning feed', 'Dairy Meal: -3 bags');
+    const items = await listOutbox();
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ type: 'feed_usage', status: 'pending' });
+    expect(items[0].payload).toMatchObject({ feed_item_id: 7, delta: -3 });
+    // The idempotency key must exist BEFORE any sync attempt so every replay
+    // of this item carries the same key.
+    expect(items[0].payload.client_txn_id).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('replays a feed transaction to the feed endpoint and preserves the same key across retries', async () => {
+    await enqueueFeedTransaction(7, -3, null, 'Dairy Meal: -3 bags');
+    const [queued] = await listOutbox();
+    const originalKey = queued.payload.client_txn_id;
+
+    // First drain attempt fails transiently — item stays pending.
+    mockedApiFetch.mockRejectedValueOnce(new ApiError(503, 'server hiccup'));
+    setOnline(true);
+    await drainOutbox();
+    expect((await listOutbox())[0].status).toBe('pending');
+
+    // Second attempt succeeds — same endpoint, same idempotency key.
+    mockedApiFetch.mockResolvedValueOnce({ item: { id: 7, quantity: 4 }, duplicate: false });
+    await drainOutbox();
+    expect(await listOutbox()).toHaveLength(0);
+
+    const calls = mockedApiFetch.mock.calls.filter(([url]) =>
+      String(url).includes('/api/feed/7/transactions')
+    );
+    expect(calls).toHaveLength(2);
+    for (const [, init] of calls) {
+      const body = JSON.parse((init as RequestInit).body as string);
+      expect(body.client_txn_id).toBe(originalKey);
+    }
   });
 });

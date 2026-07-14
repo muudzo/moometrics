@@ -31,7 +31,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /\/api\/(animals|dashboard|deaths)/,
+            urlPattern: /\/api\/(animals|dashboard|deaths|feed)/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

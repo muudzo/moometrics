@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { PawPrint, HeartPulse, Skull, TrendingDown } from 'lucide-react';
+import { PawPrint, HeartPulse, Skull, TrendingDown, Wheat } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { apiFetch } from '@/services/api';
 
@@ -11,6 +11,13 @@ interface RecentActivity {
   timestamp: string;
 }
 
+interface LowFeedItem {
+  id: number;
+  name: string;
+  quantity: number;
+  low_stock_threshold: number;
+}
+
 interface DashboardStats {
   total_animals: number;
   alive_count: number;
@@ -18,6 +25,7 @@ interface DashboardStats {
   death_rate: number;
   type_breakdown: Record<string, number>;
   recent_activity: RecentActivity[];
+  low_feed: LowFeedItem[];
 }
 
 const PIE_COLORS = ['#4a5c2a', '#8ba155', '#c8a97e', '#a37c5b', '#6b8e5e', '#d4a853', '#9ca3af'];
@@ -96,6 +104,27 @@ export function Dashboard() {
           <span className="capitalize">{user?.role}</span>
         </p>
       </div>
+
+      {/* Low feed alert — time to re-up */}
+      {stats?.low_feed && stats.low_feed.length > 0 && (
+        <div
+          role="alert"
+          className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive"
+        >
+          <p className="font-semibold flex items-center gap-2">
+            <Wheat className="h-4 w-4" /> Feed running low — time to re-up
+          </p>
+          <ul className="mt-1 space-y-0.5">
+            {stats.low_feed.map((f) => (
+              <li key={f.id}>
+                {f.name}: <span className="font-medium">{f.quantity}</span>{' '}
+                {Math.abs(f.quantity) === 1 ? 'bag' : 'bags'} left (re-order at{' '}
+                {f.low_stock_threshold})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

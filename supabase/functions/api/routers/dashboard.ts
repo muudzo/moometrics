@@ -101,6 +101,22 @@ dashboardRouter.get("/stats", requireAuth, async (c) => {
   activity.sort((x, y) => y.timestamp.getTime() - x.timestamp.getTime());
   const recentActivity = activity.slice(0, RECENT_LIMIT);
 
+  // Feed items at or below their re-order threshold — drives the low-stock
+  // alert on the dashboard.
+  const lowFeed = await sql<
+    {
+      id: number;
+      name: string;
+      quantity: number;
+      low_stock_threshold: number;
+    }[]
+  >`
+    select id, name, quantity, low_stock_threshold
+    from feed_items
+    where farm_id = ${farmId} and quantity <= low_stock_threshold
+    order by quantity asc
+  `;
+
   return c.json({
     total_animals: total,
     alive_count: alive,
@@ -108,5 +124,6 @@ dashboardRouter.get("/stats", requireAuth, async (c) => {
     death_rate: deathRate,
     type_breakdown: typeBreakdown,
     recent_activity: recentActivity,
+    low_feed: lowFeed,
   });
 });

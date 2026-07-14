@@ -14,7 +14,7 @@
 import Dexie, { type Table } from 'dexie';
 import { apiFetch, ApiError } from './api';
 
-export type OutboxType = 'animal' | 'death';
+export type OutboxType = 'animal' | 'death' | 'feed_usage';
 export type OutboxStatus = 'pending' | 'failed';
 
 export interface OutboxItem {
@@ -100,6 +100,35 @@ export async function enqueueDeath(
   return imageHash;
 }
 
+/**
+ * Queue a feed stock change (+ restock, − usage) for offline sync.
+ *
+ * The idempotency key (client_txn_id) is generated HERE, at enqueue time, and
+ * travels inside the payload — so however many times the drain replays this
+ * item, the server sees the same key and applies the delta exactly once.
+ */
+export async function enqueueFeedTransaction(
+  feedItemId: number,
+  delta: number,
+  reason: string | null,
+  label: string
+): Promise<void> {
+  await outboxDB.outbox.add({
+    type: 'feed_usage',
+    payload: {
+      feed_item_id: feedItemId,
+      delta,
+      reason,
+      client_txn_id: crypto.randomUUID(),
+    },
+    status: 'pending',
+    label,
+    createdAt: Date.now(),
+  });
+  notify();
+  void drainOutbox();
+}
+
 function isPermanent(err: unknown): boolean {
   return (
     err instanceof ApiError &&
@@ -112,6 +141,23 @@ function isPermanent(err: unknown): boolean {
 
 let draining = false;
 
+/** One replay request per outbox type — add new offline-capable entities here. */
+const replayRequest: Record<OutboxType, (item: OutboxItem) => Promise<unknown>> = {
+  animal: (item) =>
+    apiFetch('/api/animals', { method: 'POST', body: JSON.stringify(item.payload) }),
+  death: (item) => {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(item.payload)) fd.append(k, v as string);
+    fd.append('file', item.imageBlob as Blob, item.imageName ?? 'photo');
+    return apiFetch('/api/deaths', { method: 'POST', body: fd });
+  },
+  feed_usage: (item) =>
+    apiFetch(`/api/feed/${item.payload.feed_item_id}/transactions`, {
+      method: 'POST',
+      body: JSON.stringify(item.payload),
+    }),
+};
+
 /** Replay pending items in order. Safe to call repeatedly. */
 export async function drainOutbox(): Promise<void> {
   if (draining || (typeof navigator !== 'undefined' && !navigator.onLine)) return;
@@ -122,17 +168,7 @@ export async function drainOutbox(): Promise<void> {
     );
     for (const item of pending) {
       try {
-        if (item.type === 'animal') {
-          await apiFetch('/api/animals', {
-            method: 'POST',
-            body: JSON.stringify(item.payload),
-          });
-        } else {
-          const fd = new FormData();
-          for (const [k, v] of Object.entries(item.payload)) fd.append(k, v as string);
-          fd.append('file', item.imageBlob as Blob, item.imageName ?? 'photo');
-          await apiFetch('/api/deaths', { method: 'POST', body: fd });
-        }
+        await replayRequest[item.type](item);
         await outboxDB.outbox.delete(item.id as number);
       } catch (err) {
         if (isPermanent(err)) {

@@ -26,7 +26,7 @@ describe('Login', () => {
   it('renders the sign-in form by default', () => {
     renderLogin();
     expect(
-      screen.getByText('Farm management software — sign in to manage your records'),
+      screen.getByText('Farm management software — sign in to manage your records')
     ).toBeTruthy();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeTruthy();
   });

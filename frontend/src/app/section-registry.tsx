@@ -1,6 +1,7 @@
 import { Dashboard } from '@/features/dashboard/components/Dashboard';
 import { AnimalManagement } from '@/features/animals/components/AnimalManagement';
 import { DeathManagement } from '@/features/deaths/components/DeathManagement';
+import { FeedManagement } from '@/features/feed/components/FeedManagement';
 import { UserManagement } from '@/features/users/components/UserManagement';
 import { AuditLog } from '@/features/audit/components/AuditLog';
 import { Settings } from '@/features/settings/components/Settings';
@@ -17,6 +18,7 @@ const sectionRegistry: Record<AppSection, SectionRenderer> = {
   dashboard: () => <Dashboard />,
   animals: () => <AnimalManagement />,
   deaths: () => <DeathManagement />,
+  feed: () => <FeedManagement />,
   users: () => <UserManagement />,
   audit: () => <AuditLog />,
   settings: () => <Settings />,

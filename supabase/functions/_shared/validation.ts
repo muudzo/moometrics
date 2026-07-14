@@ -88,6 +88,23 @@ export const AnimalUpdateSchema = z.object({
   notes: z.string().max(1000).optional().nullable(),
 });
 
+export const FeedItemCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  quantity: z.number().int().optional().default(0),
+  low_stock_threshold: z.number().int().min(0).optional().default(5),
+});
+
+export const FeedItemUpdateSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  low_stock_threshold: z.number().int().min(0).optional(),
+});
+
+export const FeedTransactionSchema = z.object({
+  delta: z.number().int().refine((v) => v !== 0, "delta must not be zero"),
+  reason: z.string().max(200).optional().nullable(),
+  client_txn_id: z.string().uuid(),
+});
+
 export const DeathRecordFormSchema = z.object({
   animal_id: z.coerce.number().int(),
   cause_of_death: z.string().min(1).max(200),

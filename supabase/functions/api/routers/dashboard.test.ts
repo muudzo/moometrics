@@ -209,6 +209,7 @@ Deno.test("stats on a farm with zero animals returns zeroed stats, not a divisio
   assertEquals(body.death_rate, 0.0);
   assertEquals(body.type_breakdown, {});
   assertEquals(body.recent_activity, []);
+  assertEquals(body.low_feed, []);
 
   await cleanupFarm(session.farmId, [session.userId]);
 });
@@ -364,4 +365,34 @@ Deno.test("farm isolation: a farm with no data never sees another farm's stats",
 Deno.test("stats endpoint requires authentication", async () => {
   const res = await app.request("/api/dashboard/stats", { method: "GET" });
   assertEquals(res.status, 401);
+});
+
+Deno.test("low_feed lists only items at or below their threshold, farm-scoped", async () => {
+  const ip = crypto.randomUUID();
+  const session = await signup(ip, "lowfeed");
+  const other = await signup(crypto.randomUUID(), "lowfeedother");
+  const sql = getDb();
+
+  // One low (3 <= 5), one healthy (20 > 5), one low in ANOTHER farm.
+  await sql`insert into feed_items (farm_id, name, quantity, low_stock_threshold)
+            values (${session.farmId}, 'Dairy Meal', 3, 5)`;
+  await sql`insert into feed_items (farm_id, name, quantity, low_stock_threshold)
+            values (${session.farmId}, 'Hay', 20, 5)`;
+  await sql`insert into feed_items (farm_id, name, quantity, low_stock_threshold)
+            values (${other.farmId}, 'Other Farm Feed', 0, 5)`;
+
+  const res = await app.request("/api/dashboard/stats", {
+    method: "GET",
+    headers: testHeaders(ip, {
+      Authorization: `Bearer ${session.accessToken}`,
+    }),
+  });
+  const body = await res.json();
+  assertEquals(body.low_feed.length, 1);
+  assertEquals(body.low_feed[0].name, "Dairy Meal");
+  assertEquals(body.low_feed[0].quantity, 3);
+
+  await sql`delete from feed_items where farm_id in (${session.farmId}, ${other.farmId})`;
+  await cleanupFarm(session.farmId, [session.userId]);
+  await cleanupFarm(other.farmId, [other.userId]);
 });

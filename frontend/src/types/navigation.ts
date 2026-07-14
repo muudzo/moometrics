@@ -2,6 +2,7 @@ export const appSections = [
   'dashboard',
   'animals',
   'deaths',
+  'feed',
   'users',
   'audit',
   'settings',

@@ -5,6 +5,7 @@ import {
   ScrollText,
   Settings,
   Users,
+  Wheat,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppSection } from '@/types/navigation';
@@ -33,6 +34,12 @@ export const navigationItems: NavigationItem[] = [
     title: 'Deaths',
     icon: AlertTriangle,
     component: 'deaths',
+    roles: ['manager', 'employee'],
+  },
+  {
+    title: 'Feed',
+    icon: Wheat,
+    component: 'feed',
     roles: ['manager', 'employee'],
   },
   {

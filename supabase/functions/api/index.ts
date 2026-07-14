@@ -8,6 +8,7 @@ import { authRouter } from "./routers/auth.ts";
 import { animalsRouter } from "./routers/animals.ts";
 import { deathsRouter } from "./routers/deaths.ts";
 import { usersRouter } from "./routers/users.ts";
+import { feedRouter } from "./routers/feed.ts";
 import { dashboardRouter } from "./routers/dashboard.ts";
 import { auditRouter } from "./routers/audit.ts";
 
@@ -36,6 +37,7 @@ app.route("/api/auth", authRouter);
 app.route("/api/animals", animalsRouter);
 app.route("/api/deaths", deathsRouter);
 app.route("/api/users", usersRouter);
+app.route("/api/feed", feedRouter);
 app.route("/api/dashboard", dashboardRouter);
 app.route("/api/audit", auditRouter);
 
