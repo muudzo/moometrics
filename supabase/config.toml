@@ -2,3 +2,6 @@ project_id = "moometrics"
 
 [functions.api]
 verify_jwt = false
+# The deploy bundler doesn't discover the shared functions/deno.json on its
+# own; point it there so npm: specifiers (hono, jose, ...) resolve.
+import_map = "./functions/deno.json"
