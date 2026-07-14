@@ -23,7 +23,7 @@ export function Header({ darkMode, toggleDarkMode }: HeaderProps) {
           </SidebarTrigger>
           <div className="flex items-center gap-2 md:hidden">
             <MooMetricsLogo size={24} className="text-primary" />
-            <span className="font-semibold text-foreground">MooMetrics</span>
+            <span className="font-semibold text-foreground">Menabily Estate</span>
           </div>
         </div>
 

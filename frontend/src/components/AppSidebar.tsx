@@ -39,7 +39,7 @@ export function AppSidebar({ activeComponent, setActiveComponent }: AppSidebarPr
             </div>
             <div className="text-left">
               <h2 className="font-semibold text-foreground group-hover:text-accent-foreground">
-                MooMetrics
+                Menabily Estate
               </h2>
               <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
             </div>
