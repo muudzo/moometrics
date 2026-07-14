@@ -24,7 +24,7 @@ bcrypt==4.0.1
 slowapi==0.1.9
 
 # Image handling
-pillow==12.2.0
+pillow==12.3.0
 
 # Object storage (S3 / Cloudflare R2)
 boto3==1.34.34

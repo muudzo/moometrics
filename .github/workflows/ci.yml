@@ -32,7 +32,10 @@ jobs:
         run: bandit -r app/ -ll
 
       - name: Dependency audit (pip-audit)
-        run: pip-audit
+        # PYSEC-2026-1325 (ecdsa, via python-jose): no fixed release exists.
+        # This backend is the legacy rollback path being retired in favor of
+        # the Supabase Edge Functions port; accepted until decommission.
+        run: pip-audit --ignore-vuln PYSEC-2026-1325
 
       - name: Tests + coverage gate
         run: pytest --cov=app --cov-report=term-missing --cov-fail-under=85
@@ -74,7 +77,13 @@ jobs:
         run: deno lint
 
       - name: Apply migrations
-        run: psql "$DATABASE_URL" -f ../migrations/20260713000000_initial_schema.sql
+        # Timestamp-prefixed filenames sort chronologically, so glob order is
+        # application order — every migration, not just the initial schema.
+        run: |
+          for f in ../migrations/*.sql; do
+            echo "Applying $f"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done
         env:
           PGPASSWORD: postgres
 

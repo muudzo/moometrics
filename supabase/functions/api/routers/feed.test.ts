@@ -286,6 +286,56 @@ Deno.test("cross-tenant isolation: farm B cannot see or transact on farm A's fee
   await cleanupFarm(managerA.farmId);
 });
 
+Deno.test("rename/threshold edit works; transaction history lists newest first; bad ids are 422", async () => {
+  const ip = crypto.randomUUID();
+  const manager = await signupManager(ip, "feedmisc");
+  const item = await (await createItem(manager, ip, "Cubes", 10)).json();
+
+  const renamed = await app.request(`/api/feed/${item.id}`, {
+    method: "PUT",
+    headers: testHeaders(ip, { Authorization: `Bearer ${manager.token}` }),
+    body: JSON.stringify({ name: "Beef Cubes", low_stock_threshold: 2 }),
+  });
+  assertEquals(renamed.status, 200);
+  const renamedBody = await renamed.json();
+  assertEquals(renamedBody.name, "Beef Cubes");
+  assertEquals(renamedBody.low_stock_threshold, 2);
+
+  for (const delta of [-1, -2]) {
+    await app.request(`/api/feed/${item.id}/transactions`, {
+      method: "POST",
+      headers: testHeaders(ip, { Authorization: `Bearer ${manager.token}` }),
+      body: JSON.stringify({ delta, client_txn_id: crypto.randomUUID() }),
+    });
+  }
+  const history = await app.request(`/api/feed/${item.id}/transactions`, {
+    headers: testHeaders(ip, { Authorization: `Bearer ${manager.token}` }),
+  });
+  assertEquals(history.status, 200);
+  const page = await history.json();
+  assertEquals(page.total, 2);
+  assertEquals(page.items[0].delta, -2); // newest first
+
+  // Non-numeric ids are rejected uniformly across the item endpoints.
+  for (
+    const [method, path] of [
+      ["PUT", "/api/feed/abc"],
+      ["DELETE", "/api/feed/abc"],
+      ["POST", "/api/feed/abc/transactions"],
+      ["GET", "/api/feed/abc/transactions"],
+    ] as const
+  ) {
+    const res = await app.request(path, {
+      method,
+      headers: testHeaders(ip, { Authorization: `Bearer ${manager.token}` }),
+      body: method === "GET" ? undefined : JSON.stringify({}),
+    });
+    assertEquals(res.status, 422, `${method} ${path}`);
+  }
+
+  await cleanupFarm(manager.farmId);
+});
+
 Deno.test("deleting a feed item cascades its transaction history", async () => {
   const ip = crypto.randomUUID();
   const manager = await signupManager(ip, "feeddel");
