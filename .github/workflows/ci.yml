@@ -37,6 +37,60 @@ jobs:
       - name: Tests + coverage gate
         run: pytest --cov=app --cov-report=term-missing --cov-fail-under=85
 
+  edge-functions:
+    name: Edge Functions — lint, typecheck, tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: moometrics_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/moometrics_test
+      JWT_SECRET: ci-only-secret-at-least-32-characters-long
+      ENVIRONMENT: development
+      FRONTEND_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Format check
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      - name: Apply migrations
+        run: psql "$DATABASE_URL" -f ../migrations/20260713000000_initial_schema.sql
+        env:
+          PGPASSWORD: postgres
+
+      - name: Tests + coverage
+        run: deno test -A --coverage=cov_profile
+
+      - name: Coverage gate (85%, matches backend's --cov-fail-under=85)
+        run: |
+          deno coverage cov_profile --lcov --output=cov.lcov
+          sudo apt-get update -qq && sudo apt-get install -y -qq lcov
+          PCT=$(lcov --summary cov.lcov 2>&1 | grep -oP 'lines\.+: \K[0-9.]+')
+          echo "Line coverage: ${PCT}%"
+          awk -v pct="$PCT" 'BEGIN { exit !(pct >= 85) }' || {
+            echo "Coverage ${PCT}% is below the 85% gate"; exit 1;
+          }
+
   frontend:
     name: Frontend — lint, typecheck, tests, build
     runs-on: ubuntu-latest
@@ -113,3 +167,32 @@ jobs:
         run: docker build -t moometrics-backend ./backend
       - name: Build frontend image
         run: docker build -t moometrics-frontend ./frontend --build-arg VITE_BACKEND_URL=https://api.example.com
+
+  deploy-edge-functions:
+    name: Deploy Edge Functions to Supabase
+    runs-on: ubuntu-latest
+    needs: [edge-functions]
+    if: github.ref == 'refs/heads/main'
+    # Requires SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF repo secrets,
+    # set once a real Supabase project exists (see docs/RUNBOOK.md). Until
+    # those secrets are configured this job fails harmlessly — it does not
+    # block the backend/frontend/docker jobs above, which still gate main on
+    # the existing FastAPI/Render path per the migration's rollback plan.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      - name: Push database migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Deploy the api function
+        run: supabase functions deploy api --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

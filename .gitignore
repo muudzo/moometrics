@@ -26,6 +26,12 @@ playwright-report/
 test-results/
 dev-dist/
 
+# Supabase / Deno
+supabase/.temp/
+supabase/.branches/
+cov_profile/
+*.lcov
+
 # System
 .DS_Store
 .vscode/
