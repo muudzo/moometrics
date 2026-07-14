@@ -176,13 +176,17 @@ export function setRefreshCookie(c: Context, raw: string): void {
     secure: settings.isProduction,
     sameSite: settings.isProduction ? "None" : "Lax",
     maxAge: settings.refreshTokenExpireDays * 86400,
-    path: "/api/auth",
+    // Must match the path the BROWSER sees, gateway prefix included — see
+    // REFRESH_COOKIE_PATH in env.ts.
+    path: settings.refreshCookiePath,
   });
 }
 
 export function clearRefreshCookie(c: Context): void {
   const settings = getSettings();
-  deleteCookie(c, settings.refreshCookieName, { path: "/api/auth" });
+  deleteCookie(c, settings.refreshCookieName, {
+    path: settings.refreshCookiePath,
+  });
 }
 
 // --- Hono middleware -----------------------------------------------------

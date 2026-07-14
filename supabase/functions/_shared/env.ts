@@ -19,6 +19,7 @@ export interface Settings {
   accessTokenExpireMinutes: number;
   refreshTokenExpireDays: number;
   refreshCookieName: string;
+  refreshCookiePath: string;
 
   maxFailedLogins: number;
   lockoutMinutes: number;
@@ -64,6 +65,12 @@ export function getSettings(): Settings {
     accessTokenExpireMinutes: envInt("ACCESS_TOKEN_EXPIRE_MINUTES", 15),
     refreshTokenExpireDays: envInt("REFRESH_TOKEN_EXPIRE_DAYS", 30),
     refreshCookieName: env("REFRESH_COOKIE_NAME", "moometrics_refresh"),
+    // Browsers match cookie Path against the FULL request path. Behind
+    // Supabase's gateway the function is served at /functions/v1/api/..., so
+    // production must set REFRESH_COOKIE_PATH=/functions/v1/api/auth or the
+    // refresh cookie is never sent back and every session refresh 401s. The
+    // default matches local `supabase functions serve` / test paths.
+    refreshCookiePath: env("REFRESH_COOKIE_PATH", "/api/auth"),
 
     maxFailedLogins: envInt("MAX_FAILED_LOGINS", 5),
     lockoutMinutes: envInt("LOCKOUT_MINUTES", 15),
